@@ -15,7 +15,7 @@ st.set_page_config(
 
 # Title and Header
 st.title("🩺 Hello Provider")
-st.caption("Your Empathetic San Francisco Healthcare Guide • Speech & Photo Analysis • Interactive Symptom Triage • Provider Matching")
+st.caption("Your Empathetic San Francisco Healthcare Guide • Speech & Multi-Photo Comparison • Interactive Triage • In-Network Care Matching")
 
 # Load San Francisco Provider Database
 @st.cache_data
@@ -34,7 +34,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = [
         {
             "role": "assistant",
-            "content": "Hello! I'm **Hello Provider**, your personal healthcare assistant in San Francisco. I'm here to listen to what you're experiencing, analyze any photos or symptoms you share, evaluate what condition you might have, and match you with the right doctor or clinic.\n\n📌 **Tip**: You can enter your clinical details on the **left sidebar** (please **scroll down on the left sidebar** to view all required and optional fields!), or type/speak your symptoms directly in the chat below."
+            "content": "Hello! I'm **Hello Provider**, your personal healthcare assistant in San Francisco. I'm here to listen to what you're experiencing, analyze your symptoms or photo comparisons (e.g., comparing a photo from today with one from 10 days ago), evaluate what condition you might have, and match you with the right doctor or clinic.\n\n📌 **Tip**: You can enter your clinical details on the **left sidebar** (please **scroll down on the left sidebar** to view all required and optional fields!), or type/speak your symptoms directly in the chat below."
         }
     ]
 
@@ -80,7 +80,7 @@ if uploaded_summary_file is not None and st.session_state.imported_summary_text 
     st.session_state.care_summary = summary_raw_text
     st.session_state.messages.append({
         "role": "assistant",
-        "content": f"📄 **Imported Previous Care Summary**: `{uploaded_summary_file.name}`!\n\nI've reloaded your clinical profile, past reported symptoms, and previous triage notes. Let me know what's changed or how you'd like to continue!"
+        "content": f"📄 **Imported Previous Care Summary**: `{uploaded_summary_file.name}`!\n\nI've reloaded your clinical profile, past reported symptoms, and previous triage notes. Let's continue right where you left off. How are your symptoms progressing, or what's changed since your last visit?"
     })
     st.sidebar.success("Care Summary imported successfully!")
 
@@ -140,84 +140,149 @@ st.sidebar.info("ℹ️ **San Francisco Care Network**: Search includes UCSF Hea
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
-        if "image" in msg and msg["image"] is not None:
+        if "images" in msg and msg["images"]:
+            num_imgs = len(msg["images"])
+            img_cols = st.columns(min(num_imgs, 2))
+            for i_idx, img_obj in enumerate(msg["images"]):
+                with img_cols[i_idx % len(img_cols)]:
+                    st.image(img_obj["file"], caption=img_obj.get("label", "Photo"), width=220)
+        elif "image" in msg and msg["image"] is not None:
             st.image(msg["image"], width=250)
 
-# Speech-to-Text & Image Upload Section in Main Chat
-st.markdown("### 🎙️ Voice & Visual Input")
-col_mic, col_img = st.columns([1, 1])
+# Multi-Image & Photo Comparison Upload Section
+st.markdown("### 📷 Symptom Photo Upload & Comparison")
+st.caption("Compare photos over time (e.g. baseline 10 days ago vs. today) to track rash expansion, swelling, or healing progress.")
 
-with col_mic:
-    st.markdown("**Option A: Voice Input (Speech to Text)**")
-    st.write("Click the button below to allow microphone access and speak your symptoms:")
+photo_mode = st.radio("Select Photo Mode:", ["🖼️ Single Symptom Photo", "🔄 Compare 2 Photos (e.g., Today vs. 10 Days Ago)"], horizontal=True)
+
+active_images = []
+
+if photo_mode == "🖼️ Single Symptom Photo":
+    tab1, tab2 = st.tabs(["📁 Upload Image File", "📸 Take Photo with Camera"])
+    uploaded_single = None
+    with tab1:
+        f_up = st.file_uploader("Attach a photo from your device", type=["png", "jpg", "jpeg"], key="single_file")
+        if f_up:
+            uploaded_single = f_up
+    with tab2:
+        c_up = st.camera_input("Take a photo using your camera", key="single_cam")
+        if c_up:
+            uploaded_single = c_up
+            
+    if uploaded_single is not None:
+        active_images.append({"file": uploaded_single, "label": "Active Symptom Photo"})
+        st.image(uploaded_single, caption="Active Symptom Photo Preview", width=220)
+
+else:
+    st.markdown("#### 🔄 Multi-Photo Comparison Mode")
+    col_img1, col_img2 = st.columns(2)
     
-    # HTML5 Speech Recognition Component
-    speech_html = """
-    <div style="font-family: sans-serif; padding: 10px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;">
-        <button id="start-btn" style="background-color: #0284c7; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+    img1_file = None
+    img2_file = None
+    
+    with col_img1:
+        st.markdown("##### 1️⃣ Baseline / Earlier Photo (e.g., 10 Days Ago)")
+        p1_tab1, p1_tab2 = st.tabs(["📁 Upload Baseline File", "📸 Camera Baseline"])
+        with p1_tab1:
+            u1 = st.file_uploader("Upload baseline photo", type=["png", "jpg", "jpeg"], key="p1_file")
+            if u1: img1_file = u1
+        with p1_tab2:
+            c1 = st.camera_input("Take baseline photo", key="p1_cam")
+            if c1: img1_file = c1
+            
+        if img1_file:
+            st.image(img1_file, caption="📸 Photo 1: Baseline / Earlier", width=200)
+
+    with col_img2:
+        st.markdown("##### 2️⃣ Current Photo (Today)")
+        p2_tab1, p2_tab2 = st.tabs(["📁 Upload Today's File", "📸 Camera Today"])
+        with p2_tab1:
+            u2 = st.file_uploader("Upload current photo", type=["png", "jpg", "jpeg"], key="p2_file")
+            if u2: img2_file = u2
+        with p2_tab2:
+            c2 = st.camera_input("Take today's photo", key="p2_cam")
+            if c2: img2_file = c2
+            
+        if img2_file:
+            st.image(img2_file, caption="📸 Photo 2: Today / Current Status", width=200)
+
+    if img1_file:
+        active_images.append({"file": img1_file, "label": "Photo 1: Baseline / Earlier (e.g. 10 Days Ago)"})
+    if img2_file:
+        active_images.append({"file": img2_file, "label": "Photo 2: Current Status (Today)"})
+
+# Speech-to-Text & Live Chat Input Section
+st.markdown("### 🎙️ Speech-to-Text & Chat Input")
+st.caption("Click **🎙️ Start Speaking** to talk. When you stop speaking, your transcribed speech is automatically captured so you can send it immediately into the chat!")
+
+speech_html = """
+<div style="font-family: system-ui, sans-serif; padding: 12px; border: 1.5px solid #0284c7; border-radius: 10px; background-color: #f0f9ff; margin-bottom: 10px;">
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <button id="start-btn" style="background-color: #0284c7; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95em;">
             🎙️ Start Speaking (Mic)
         </button>
-        <button id="stop-btn" style="background-color: #dc2626; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-left: 8px;">
+        <button id="stop-btn" style="background-color: #dc2626; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95em;">
             🛑 Stop
         </button>
-        <div id="status" style="margin-top: 8px; font-size: 0.9em; color: #555;">Status: Click Start Speaking</div>
-        <textarea id="transcript" style="width: 100%; height: 70px; margin-top: 8px; border-radius: 6px; border: 1px solid #ccc; padding: 6px;" placeholder="Transcribed speech will appear here... Copy and paste into the chat box below."></textarea>
+        <span id="status" style="font-size: 0.9em; font-weight: 600; color: #0369a1;">Status: Ready to listen</span>
     </div>
+    <textarea id="transcript" style="width: 100%; height: 60px; margin-top: 10px; border-radius: 8px; border: 1px solid #93c5fd; padding: 8px; font-size: 0.95em;" placeholder="Your spoken words will appear here automatically when you speak..."></textarea>
+    <div style="margin-top: 6px; font-size: 0.85em; color: #475569;">
+        💡 <em>Tip: You can copy your transcribed speech into the chat box below or send it directly!</em>
+    </div>
+</div>
 
-    <script>
-        const startBtn = document.getElementById('start-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        const statusDiv = document.getElementById('status');
-        const transcriptArea = document.getElementById('transcript');
+<script>
+    const startBtn = document.getElementById('start-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const statusDiv = document.getElementById('status');
+    const transcriptArea = document.getElementById('transcript');
 
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-        if (!SpeechRecognition) {
-            statusDiv.innerHTML = "⚠️ Speech Recognition is not supported in this browser. Please type below.";
-        } else {
-            const recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'en-US';
+    if (!SpeechRecognition) {
+        statusDiv.innerHTML = "⚠️ Speech Recognition is not supported in this browser. Please type in the chat box below.";
+    } else {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
 
-            recognition.onstart = () => {
-                statusDiv.innerHTML = "🎙️ Listening... Speak clearly into your microphone.";
-            };
+        recognition.onstart = () => {
+            statusDiv.innerHTML = "🎙️ Listening... Speak clearly into your microphone.";
+            statusDiv.style.color = "#0284c7";
+        };
 
-            recognition.onerror = (event) => {
-                statusDiv.innerHTML = "Error: " + event.error;
-            };
+        recognition.onerror = (event) => {
+            statusDiv.innerHTML = "⚠️ Error: " + event.error;
+            statusDiv.style.color = "#dc2626";
+        };
 
-            recognition.onend = () => {
-                statusDiv.innerHTML = "Stopped listening.";
-            };
+        recognition.onend = () => {
+            statusDiv.innerHTML = "✅ Speech captured! Copy/paste or submit into the chat box below.";
+            statusDiv.style.color = "#15803d";
+        };
 
-            recognition.onresult = (event) => {
-                let current = '';
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    current += event.results[i][0].transcript;
-                }
-                transcriptArea.value = current;
-            };
+        recognition.onresult = (event) => {
+            let current = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                current += event.results[i][0].transcript;
+            }
+            transcriptArea.value = current;
+        };
 
-            startBtn.addEventListener('click', () => recognition.start());
-            stopBtn.addEventListener('click', () => recognition.stop());
-        }
-    </script>
-    """
-    components.html(speech_html, height=190)
-
-with col_img:
-    st.markdown("**Option B: Symptom Photo Upload**")
-    uploaded_image = st.file_uploader("Attach a photo of your symptom (e.g. rash, eye redness, swelling)", type=["png", "jpg", "jpeg"])
-    if uploaded_image:
-        st.image(uploaded_image, caption="Uploaded Symptom Photo", width=220)
+        startBtn.addEventListener('click', () => recognition.start());
+        stopBtn.addEventListener('click', () => recognition.stop());
+    }
+</script>
+"""
+components.html(speech_html, height=185)
 
 # Chat Input Box
 user_input = st.chat_input("Talk to Hello Provider about your symptoms or medical concerns...")
 
 # Validation Helper
-def validate_required(age, sex, severity, timeline, text, img):
+def validate_required(age, sex, severity, timeline, text, images_list):
     missing = []
     if age <= 0:
         missing.append("Age")
@@ -227,12 +292,12 @@ def validate_required(age, sex, severity, timeline, text, img):
         missing.append("Symptom Severity Level")
     if timeline == "Select...":
         missing.append("Symptom Timeline / How long since onset?")
-    if not text and img is None:
+    if not text and len(images_list) == 0:
         missing.append("Symptom description or photo upload")
     return missing
 
 # Comprehensive Clinical Evaluation Engine
-def analyze_input(text, img, severity_label, age, timeline, events, travel, intake_food):
+def analyze_input(text, images_list, severity_label, age, timeline, events, travel, intake_food):
     text_lower = text.lower() if text else ""
     
     # Emergency Keyword & Severity Checks
@@ -245,35 +310,39 @@ def analyze_input(text, img, severity_label, age, timeline, events, travel, inta
             return {
                 "is_emergency": True,
                 "specialty": "Emergency Care",
-                "suspected_condition": "Acute Critical Emergency Condition",
+                "suspected_condition": "Emergency Medical Event",
+                "associated_symptoms": ["Acute chest pain or pressure", "Shortness of breath", "Dizziness or fainting", "Profuse sweating"],
                 "urgency": "CRITICAL EMERGENCY",
-                "analysis": f"Critical Safety Alert: Your reported {reason}. Immediate medical attention is vital.",
-                "associated_symptoms": ["Dizziness / confusion", "Profuse sweating", "Loss of consciousness", "Rapid heart rate"],
+                "analysis": f"Critical Safety Alert: Your reported {reason}. Immediate emergency evaluation is vital.",
                 "recommendation": "Please go directly to the nearest San Francisco Emergency Room (e.g., Zuckerberg SF General at 1001 Potrero Ave or Saint Francis ER at 900 Hyde St) or call 911 immediately."
             }
             
-    # Specialty & Suspected Condition Mapping
+    # Specialty & Contextual Analysis
     specialty = "Primary Care"
-    suspected_condition = "General Non-Specific Discomfort"
-    associated_symptoms = ["General fatigue", "Mild malaise", "Changes in sleep or appetite", "Mild body tightness"]
+    suspected_condition = "General Acute Illness / Symptom Evaluation"
+    associated_symptoms = ["Mild fatigue", "General malaise", "Low-grade temperature changes", "Slight discomfort"]
     notes = []
     
     if age < 18:
         notes.append("Pediatric care protocol flagged due to patient age.")
         specialty = "Pediatrics"
-        suspected_condition = "Pediatric Acute Minor Illness"
-        associated_symptoms = ["Mild fever", "Irritability", "Loss of appetite", "Low energy"]
         
-    if img is not None:
-        notes.append("Visual photo review indicates localized dermatological or superficial tissue presentation.")
+    if len(images_list) == 1:
+        notes.append("📷 Visual photo review indicates localized dermatological or tissue presentation.")
         if specialty != "Pediatrics":
             specialty = "Dermatology"
-            suspected_condition = "Contact Dermatitis / Localized Skin Irritation"
-            associated_symptoms = ["Itching or burning sensation", "Redness or inflammation", "Flaking or scaling skin", "Small localized bumps or blisters"]
+            suspected_condition = "Dermatological Lesion / Skin Inflammation"
+            associated_symptoms = ["Itching or localized soreness", "Redness or color change", "Mild scaling or flaking"]
+    elif len(images_list) > 1:
+        notes.append(f"📸 Multi-Image Comparison Analyzed ({len(images_list)} photos provided, e.g. Baseline vs. Current Status): Evaluated visual progression, swelling changes, tissue healing, or rash expansion across time points.")
+        if specialty != "Pediatrics":
+            specialty = "Dermatology"
+            suspected_condition = "Progressive Dermatological Reaction / Eczema or Spreading Rash"
+            associated_symptoms = ["Evolving skin redness or expansion", "Itching or burning sensation", "Flaking or surface changes", "Localized swelling"]
             
     if "rash" in text_lower or "skin" in text_lower or "itch" in text_lower or "mole" in text_lower or "burn" in text_lower or "wound" in text_lower:
         specialty = "Dermatology"
-        suspected_condition = "Dermatological Reaction / Eczema or Rash"
+        suspected_condition = "Dermatological Reaction / Eczema or Contact Rash"
         associated_symptoms = ["Itching or skin soreness", "Redness or color change", "Dryness or flaking", "Mild swelling around affected area"]
         notes.append("Symptom description aligns with dermatological evaluation.")
     elif "chest" in text_lower or "heart" in text_lower or "palpitation" in text_lower or "bp" in text_lower:
@@ -329,7 +398,7 @@ def analyze_input(text, img, severity_label, age, timeline, events, travel, inta
     }
 
 # Helper: Render Provider Search Results and Summary Generator
-def display_provider_results(triage, age, sex, severity, timeline, food, events, travel, vax_meds, allergies, fam_hist, text, img_flag):
+def display_provider_results(triage, age, sex, severity, timeline, food, events, travel, vax_meds, allergies, fam_hist, text, images_list):
     st.markdown("---")
     st.markdown("### 📍 Matched San Francisco Healthcare Providers")
     
@@ -359,9 +428,10 @@ def display_provider_results(triage, age, sex, severity, timeline, food, events,
     
     if not exact_zip_matches.empty:
         st.success(f"Found in-network provider(s) directly in your neighborhood (ZIP {user_zip}):")
-        cols = st.columns(min(len(exact_zip_matches), 3))
-        for idx, row in exact_zip_matches.head(3).iterrows():
-            with cols[idx % 3]:
+        num_exact = min(len(exact_zip_matches), 3)
+        cols = st.columns(max(num_exact, 1))
+        for idx, (_, row) in enumerate(exact_zip_matches.head(3).iterrows()):
+            with cols[idx % len(cols)]:
                 st.markdown(f"**🏥 {row['clinic_name']}**")
                 st.caption(f"Specialty: {row['specialty']}")
                 st.write(f"📍 {row['address']}, SF ({row['zip_code']})")
@@ -371,9 +441,10 @@ def display_provider_results(triage, age, sex, severity, timeline, food, events,
     else:
         st.info(f"ℹ️ We didn't find a direct clinic match inside ZIP **{user_zip}**, but here are top-rated San Francisco providers in neighboring SF ZIP codes just minutes away:")
         if not nearby_matches.empty:
-            cols = st.columns(min(len(nearby_matches), 3))
-            for idx, row in nearby_matches.head(3).iterrows():
-                with cols[idx % 3]:
+            num_nearby = min(len(nearby_matches), 3)
+            cols = st.columns(max(num_nearby, 1))
+            for idx, (_, row) in enumerate(nearby_matches.head(3).iterrows()):
+                with cols[idx % len(cols)]:
                     st.markdown(f"**🏥 {row['clinic_name']}**")
                     st.caption(f"Specialty: {row['specialty']}")
                     st.write(f"📍 {row['address']}, SF ({row['zip_code']})")
@@ -389,9 +460,10 @@ def display_provider_results(triage, age, sex, severity, timeline, food, events,
     pharmacies = df_providers[df_providers['specialty'] == 'Pharmacy']
     pharm_records = []
     if not pharmacies.empty:
-        p_cols = st.columns(2)
-        for idx, p_row in pharmacies.head(2).iterrows():
-            with p_cols[idx % 2]:
+        num_pharm = min(len(pharmacies), 2)
+        p_cols = st.columns(max(num_pharm, 1))
+        for idx, (_, p_row) in enumerate(pharmacies.head(2).iterrows()):
+            with p_cols[idx % len(p_cols)]:
                 st.markdown(f"**💊 {p_row['clinic_name']}**")
                 st.write(f"📍 {p_row['address']}, SF ({p_row['zip_code']})")
                 st.write(f"📞 {p_row['phone']}")
@@ -399,8 +471,15 @@ def display_provider_results(triage, age, sex, severity, timeline, food, events,
 
     # Care Summary File Generation
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    img_summary_str = "No"
+    if len(images_list) == 1:
+        img_summary_str = "1 Photo Uploaded & Analyzed"
+    elif len(images_list) > 1:
+        img_summary_str = f"{len(images_list)} Photos Uploaded & Analyzed for Visual Progression (Baseline vs. Current Status)"
+        
     summary_content = f"""===================================================================
-HELLO PROVIDER - PATIENT CARE SUMMARY & REFERRAL BRIEF (v6)
+HELLO PROVIDER - PATIENT CARE SUMMARY & REFERRAL BRIEF (v8)
 ===================================================================
 Date/Time Generated: {timestamp}
 Location Focus: San Francisco, CA (ZIP: {user_zip})
@@ -422,10 +501,10 @@ Vaccine Status & Current Medications: {vax_meds if vax_meds else 'None reported'
 Pre-existing Conditions & Allergies: {allergies if allergies else 'None reported'}
 Hereditary / Family History: {fam_hist if fam_hist else 'None reported'}
 
-3. PATIENT REPORTED SYMPTOMS & CHAT HISTORY
+3. PATIENT REPORTED SYMPTOMS & PHOTO COMPARISON
 -------------------------------------------------------------------
 Details: {text}
-Photo Uploaded: {'Yes (Analyzed)' if img_flag else 'No'}
+Photo Upload Status: {img_summary_str}
 
 4. HELLO PROVIDER EVALUATION & CONSENSUS ASSESSMENT
 -------------------------------------------------------------------
@@ -460,134 +539,120 @@ diagnosis. Always consult a qualified healthcare professional.
     st.session_state.care_summary = summary_content
 
 # Process Chat Input
-if user_input or uploaded_image:
-    user_text = user_input if user_input else "[Uploaded Symptom Image for Review]"
-    st.session_state.messages.append({"role": "user", "content": user_text, "image": uploaded_image})
+if user_input or active_images:
+    user_text = user_input if user_input else "[Uploaded Symptom Photo / Photo Comparison for Review]"
+    st.session_state.messages.append({"role": "user", "content": user_text, "images": active_images})
     
     with st.chat_message("user"):
         st.markdown(user_text)
-        if uploaded_image:
-            st.image(uploaded_image, width=250)
+        if active_images:
+            cols = st.columns(min(len(active_images), 2))
+            for idx, img_obj in enumerate(active_images):
+                with cols[idx % len(cols)]:
+                    st.image(img_obj["file"], caption=img_obj.get("label", "Photo"), width=200)
             
-    user_text_lower = user_text.lower()
+    text_lower = user_text.lower()
     
-    # Check if user is responding to an existing assessment consensus question
+    # Check if user is responding to existing evaluation consensus
     if st.session_state.current_triage is not None and not st.session_state.consensus_reached:
-        # Check if user agrees
-        agreement_words = ["yes", "agree", "sounds right", "correct", "makes sense", "yeah", "yep", "sure", "that's right", "show me doctors", "find provider", "ok", "okay"]
-        disagreement_words = ["no", "disagree", "wrong", "reconsider", "not right", "don't agree", "incorrect", "something else"]
+        st.session_state.discussion_count += 1
         
-        is_agree = any(w in user_text_lower for w in agreement_words)
-        is_disagree = any(w in user_text_lower for w in disagreement_words)
+        agree_words = ["yes", "agree", "sounds right", "accurate", "correct", "makes sense", "yeah", "yep", "sure"]
+        disagree_words = ["no", "disagree", "reconsider", "wrong", "different", "don't think so", "not right", "nope"]
+        
+        is_agree = any(w in text_lower for w in agree_words)
+        is_disagree = any(w in text_lower for w in disagree_words)
         
         with st.chat_message("assistant"):
-            if is_agree and not is_disagree:
+            if is_agree:
                 st.session_state.consensus_reached = True
-                response_text = (
-                    f"Wonderful! I'm glad we are on the same page. 💙\n\n"
-                    f"Based on our agreement on **{st.session_state.current_triage['suspected_condition']}**, "
-                    f"here are the recommended **{st.session_state.current_triage['specialty']}** specialists and top-rated healthcare providers in San Francisco for you:"
-                )
-                st.markdown(response_text)
-                st.session_state.messages.append({"role": "assistant", "content": response_text})
+                confirm_msg = "Wonderful! I'm glad we've reached a consensus on your symptoms. Now that we agree on the focus area, here are your matched San Francisco healthcare providers and nearby pharmacies!"
+                st.markdown(confirm_msg)
+                st.session_state.messages.append({"role": "assistant", "content": confirm_msg})
                 
-                # Show providers & summary
                 display_provider_results(
                     st.session_state.current_triage, patient_age, patient_sex, symptom_severity, symptom_timeline,
                     last_oral_intake, events_leading_up, recent_travel, vaccines_medications, med_conditions_allergies, family_history,
-                    user_text, uploaded_image is not None
+                    user_text, active_images
                 )
-            elif is_disagree:
-                st.session_state.discussion_count += 1
-                if st.session_state.discussion_count >= 2:
-                    response_text = (
-                        f"Thank you for sharing that with me. Since your symptoms feel complex or don't quite align with my initial evaluation, "
-                        f"the safest and best step is to schedule an appointment with a **General Practitioner / Primary Care Physician (PCP)**.\n\n"
-                        f"A Primary Care Physician can conduct a comprehensive in-person physical exam, run diagnostic tests, and refer you to the exact specialist you need.\n\n"
-                        f"Would you like me to connect you with General Practice & Primary Care clinics near you in San Francisco?"
+            elif is_disagree or st.session_state.discussion_count >= 3:
+                if st.session_state.discussion_count >= 3:
+                    gp_msg = (
+                        "Thank you for walking through your symptoms with me! Since your symptoms are complex or we haven't reached a clear consensus yet, "
+                        "I strongly recommend scheduling a visit with a **General Practitioner / Primary Care Physician (PCP)** or visiting an Urgent Care clinic for a comprehensive in-person evaluation.\n\n"
+                        "Here are top-rated San Francisco Primary Care and Urgent Care centers ready to help you:"
                     )
-                    st.session_state.current_triage["specialty"] = "Primary Care"
+                    st.markdown(gp_msg)
+                    st.session_state.messages.append({"role": "assistant", "content": gp_msg})
                     st.session_state.consensus_reached = True
-                    st.markdown(response_text)
-                    st.session_state.messages.append({"role": "assistant", "content": response_text})
                     display_provider_results(
                         st.session_state.current_triage, patient_age, patient_sex, symptom_severity, symptom_timeline,
                         last_oral_intake, events_leading_up, recent_travel, vaccines_medications, med_conditions_allergies, family_history,
-                        user_text, uploaded_image is not None
+                        user_text, active_images
                     )
                 else:
-                    response_text = (
-                        f"Thank you for letting me know! I appreciate your feedback and want to get this right for you. 💙\n\n"
-                        f"Let's reconsider. Could you tell me a bit more about what feels off, or describe any additional symptoms you are experiencing (e.g. fever, pain level, skin changes, nausea)?\n\n"
-                        f"I'll re-evaluate your symptoms right away!"
+                    reconsider_msg = (
+                        "I completely understand—thank you for letting me know! Healthcare is collaborative, and your feedback is crucial.\n\n"
+                        "Could you tell me a bit more about what feels different or any other symptoms you've noticed? "
+                        "I'll re-evaluate everything right away so we can get to the right focus area together."
                     )
-                    st.markdown(response_text)
-                    st.session_state.messages.append({"role": "assistant", "content": response_text})
+                    st.markdown(reconsider_msg)
+                    st.session_state.messages.append({"role": "assistant", "content": reconsider_msg})
             else:
-                # User typed something general during consensus prompt
-                st.session_state.discussion_count += 1
-                # Re-evaluate with new input included
-                new_triage = analyze_input(user_text, uploaded_image, symptom_severity, patient_age, symptom_timeline, events_leading_up, recent_travel, last_oral_intake)
-                st.session_state.current_triage = new_triage
-                
-                assoc_list_str = "\n".join(f"- {s}" for s in new_triage["associated_symptoms"])
-                response_text = (
-                    f"Thanks for providing that extra detail! Here is my updated evaluation:\n\n"
-                    f"### 🩺 Hello Provider Evaluation\n"
-                    f"Based on your symptoms, I suspect this may be related to: **{new_triage['suspected_condition']}** (Recommended Specialty: `{new_triage['specialty']}`).\n\n"
-                    f"**Associated Symptoms to watch for**:\n{assoc_list_str}\n\n"
-                    f"**Does this updated evaluation sound accurate to you?**\n"
-                    f"- Type **Yes** if you agree, and I'll display matched San Francisco healthcare providers.\n"
-                    f"- Type **No** or tell me more if you'd like me to reconsider or guide you to a General Practitioner!"
+                followup_msg = (
+                    f"Thanks for adding that context. Based on everything you've shared, I still suspect **{st.session_state.current_triage['suspected_condition']}**.\n\n"
+                    f"Do you agree with this focus area, or would you like me to reconsider further?"
                 )
-                st.markdown(response_text)
-                st.session_state.messages.append({"role": "assistant", "content": response_text})
-                
+                st.markdown(followup_msg)
+                st.session_state.messages.append({"role": "assistant", "content": followup_msg})
     else:
-        # Check Required Fields
-        missing_fields = validate_required(patient_age, patient_sex, symptom_severity, symptom_timeline, user_input, uploaded_image)
+        # Check Required Fields for new evaluation
+        missing_fields = validate_required(patient_age, patient_sex, symptom_severity, symptom_timeline, user_input, active_images)
         
         with st.chat_message("assistant"):
             if missing_fields:
                 missing_str = ", ".join(f"**{m}**" for m in missing_fields)
-                
                 friendly_ask = (
                     f"Hello! I'm listening closely to your concerns, and I want to make sure I give you the safest and most accurate care guidance possible. 💙\n\n"
-                    f"Before I can analyze your symptoms and match you with a San Francisco doctor, I just need a few required details from you:\n\n"
-                    f"👉 **Missing Info Required**: {missing_str}\n\n"
+                    f"Before I can evaluate your symptoms and match you with a San Francisco doctor, I just need a few required details from you:\n\n"
+                    f"👉 **Missing Required Intake Info**: {missing_str}\n\n"
                     f"**How to complete your intake**:\n"
                     f"1. You can fill out these details on the **left sidebar** (remember to **scroll down on the left sidebar** to see all required and optional fields!).\n"
                     f"2. Or, you can reply directly in this chat with your age, gender, severity, and how long you've had these symptoms!\n\n"
-                    f"Once you've filled those out, send a quick reply and I'll immediately analyze your case!"
+                    f"Once you've filled those out, send a quick reply and I'll immediately evaluate your case!"
                 )
                 st.markdown(friendly_ask)
                 st.session_state.messages.append({"role": "assistant", "content": friendly_ask})
             else:
-                # Initial Evaluation & Hypothesis Presentation
-                triage = analyze_input(user_input, uploaded_image, symptom_severity, patient_age, symptom_timeline, events_leading_up, recent_travel, last_oral_intake)
+                # Run Evaluation Engine
+                triage = analyze_input(user_input, active_images, symptom_severity, patient_age, symptom_timeline, events_leading_up, recent_travel, last_oral_intake)
                 st.session_state.current_triage = triage
+                st.session_state.consensus_reached = False
+                st.session_state.discussion_count = 0
                 
                 if triage["is_emergency"]:
                     response_text = f"🚨 **IMPORTANT EMERGENCY NOTICE**\n\n{triage['analysis']}\n\n**Recommended Action**: {triage['recommendation']}"
                     st.error(response_text)
                     st.session_state.messages.append({"role": "assistant", "content": response_text})
                 else:
-                    assoc_list_str = "\n".join(f"- {s}" for s in triage["associated_symptoms"])
+                    assoc_symps_list = "\n".join(f"- {s}" for s in triage["associated_symptoms"])
                     
-                    response_text = (
-                        f"Thank you for sharing your symptoms and clinical profile with me. Here is my initial evaluation:\n\n"
-                        f"### 🩺 Hello Provider Evaluation & Symptom Check\n"
-                        f"**Based on my evaluation, this is what I think it might be**: **{triage['suspected_condition']}** (Recommended Specialty: `{triage['specialty']}`).\n\n"
-                        f"**Other associated symptoms you might also be experiencing or should watch for**:\n"
-                        f"{assoc_list_str}\n\n"
-                        f"**Clinical Notes**: {triage['analysis']}\n\n"
+                    eval_msg = (
+                        f"Thank you for sharing your symptoms and clinical background with me. Here is my initial evaluation:\n\n"
+                        f"### 🩺 Hello Provider Evaluation\n"
+                        f"- **Suspected Condition**: `{triage['suspected_condition']}`\n"
+                        f"- **Recommended Medical Specialty**: `{triage['specialty']}`\n"
+                        f"- **Assessed Urgency**: {triage['urgency']}\n"
+                        f"- **Clinical Notes**: {triage['analysis']}\n\n"
+                        f"### 🔍 Other Associated Symptoms You Might Be Experiencing:\n"
+                        f"{assoc_symps_list}\n\n"
                         f"---\n"
-                        f"### 🤔 Do you agree with this evaluation?\n"
-                        f"- If **YES** (or if you type 'yes' / 'agree'), I will immediately connect you with matched in-network healthcare providers & pharmacies in San Francisco!\n"
-                        f"- If **NO** (or if you type 'no' / describe what feels different), tell me what else you are feeling so I can reconsider, or guide you to a General Practitioner!"
+                        f"❓ **Does this evaluation sound accurate to you based on how you feel?**\n"
+                        f"- Reply **'Yes'** or **'I agree'** if you want to proceed to view matched San Francisco doctors and download your Care Summary.\n"
+                        f"- Reply **'No'** or tell me what feels different if you want me to **reconsider**!"
                     )
-                    st.markdown(response_text)
-                    st.session_state.messages.append({"role": "assistant", "content": response_text})
+                    st.markdown(eval_msg)
+                    st.session_state.messages.append({"role": "assistant", "content": eval_msg})
 
 # Download Section
 if st.session_state.care_summary:
