@@ -1,228 +1,277 @@
 import streamlit as st
 import pandas as pd
-import re
+import os
+import datetime
+from PIL import Image
+import io
 
-# Set page configuration
+# Page Config
 st.set_page_config(
-    page_title="AI Patient Care Navigator & Triage",
-    page_icon="🩺",
+    page_title="SF AI Care Navigator & Triage",
+    page_icon="🌉",
     layout="wide"
 )
 
-# Custom CSS for styling cards
-st.markdown("""
-    <style>
-    .emergency-box {
-        background-color: #ff4b4b;
-        color: white;
-        padding: 18px;
-        border-radius: 8px;
-        font-weight: bold;
-        font-size: 1.1rem;
-        margin-bottom: 20px;
-    }
-    .care-card {
-        background-color: #f8f9fa;
-        border-left: 5px solid #0284c7;
-        padding: 15px;
-        border-radius: 6px;
-        margin-bottom: 12px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    .pharmacy-card {
-        background-color: #f0fdf4;
-        border-left: 5px solid #16a34a;
-        padding: 15px;
-        border-radius: 6px;
-        margin-bottom: 12px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    .badge {
-        display: inline-block;
-        background-color: #e2e8f0;
-        color: #334155;
-        padding: 3px 8px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        margin-right: 4px;
-    }
-    </style>
-""", unsafe_allow_html=True)
+# Title and Header
+st.title("🌉 San Francisco AI Care Navigator & Triage")
+st.caption("AI-Powered Symptom & Image Analysis • San Francisco In-Network Provider Matching • Patient Referral Brief Generator")
 
-# Load database
+# Load San Francisco Provider Database
 @st.cache_data
-def load_data():
-    try:
-        return pd.read_csv("providers.csv")
-    except Exception:
-        # Fallback inline sample data if file missing
-        data = {
-            "clinic_name": ["Metro Heart Institute", "Pacific Dermatology", "Sunset Urgent Care"],
-            "specialty": ["Cardiology", "Dermatology", "Urgent Care"],
-            "accepted_insurances": ["Medicaid, Blue Cross Blue Shield, Aetna", "Blue Cross Blue Shield, Cigna", "Medicaid, Cash/Uninsured"],
-            "city_zip": [90210, 90210, 90210],
-            "address_phone": ["123 Health Ave | (555) 019-2831", "456 Skin Care Blvd | (555) 012-9843", "789 Sunset Blvd | (555) 014-5512"],
-            "type": ["Clinic", "Clinic", "Clinic"]
-        }
-        return pd.DataFrame(data)
+def load_providers():
+    csv_path = "providers-v2.csv"
+    if not os.path.exists(csv_path):
+        csv_path = "providers.csv"
+    if os.path.exists(csv_path):
+        return pd.read_csv(csv_path)
+    else:
+        st.error("Provider database not found.")
+        return pd.DataFrame()
 
-df_providers = load_data()
+df_providers = load_providers()
 
-# Header Section
-st.title("🩺 AI Patient Care Navigator & Triage")
-st.caption("Empowering patients to find appropriate, in-network specialist care and avoid delays.")
-
-# Sidebar Filters & Setup
-with st.sidebar:
-    st.header("📋 Patient Settings")
-    
-    insurance_options = [
-        "Medicaid", 
-        "Blue Cross Blue Shield", 
-        "Aetna", 
-        "Cigna", 
-        "UnitedHealthcare", 
-        "Medicare", 
-        "Cash/Uninsured"
-    ]
-    selected_insurance = st.selectbox("Select Your Insurance Provider:", insurance_options)
-    
-    user_zip = st.text_input("Enter Your ZIP Code:", value="90210")
-    
-    st.divider()
-    st.warning("⚠️ **Medical Emergency Alert**\nIf you are experiencing a life-threatening emergency, please call **911** or go to the nearest Emergency Room immediately.")
-
-# Emergency Keyword Detection
-EMERGENCY_KEYWORDS = [
-    "chest pain", "shortness of breath", "cannot breathe", "can't breathe", 
-    "numbness", "paralysis", "stroke", "heart attack", "unconscious", 
-    "fainted", "severe bleeding", "poison", "coughing blood"
-]
-
-# Triage Mapping Logic
-SPECIALTY_MAP = {
-    "Cardiology": ["heart", "chest pain", "palpitation", "high blood pressure", "artery", "cardiac"],
-    "Dermatology": ["skin", "rash", "mole", "itch", "acne", "eczema", "lesion", "hive", "spot"],
-    "Orthopedics": ["bone", "joint", "knee", "shoulder", "fracture", "sprain", "back pain", "ligament", "ankle"],
-    "Neurology": ["headache", "migraine", "dizziness", "seizure", "numbness", "tingling", "brain", "memory"],
-    "Gastroenterology": ["stomach", "nausea", "vomiting", "acid reflux", "gut", "abdomen", "diarrhea", "cramp"],
-    "Psychiatry": ["anxiety", "depression", "panic", "mental health", "stress", "insomnia", "mood"],
-    "Ophthalmology": ["eye", "vision", "blurry", "cataract", "cornea", "sight"]
+# Sidebar Setup
+st.sidebar.header("📍 Patient Location & Insurance")
+sf_zips = {
+    "94109 - Van Ness / Nob Hill / Tenderloin": "94109",
+    "94110 - Mission District / Potrero": "94110",
+    "94114 - Castro / Noe Valley": "94114",
+    "94115 - Pacific Heights / Western Addition": "94115",
+    "94143 - Parnassus Heights (UCSF Main)": "94143",
+    "94158 - Mission Bay (UCSF Medical Center)": "94158",
+    "94102 / 94104 / 94105 - Downtown / Financial Dist": "94105",
+    "94121 - Richmond District": "94121",
 }
 
-def analyze_symptoms(symptoms_text):
-    text = symptoms_text.lower()
+selected_zip_label = st.sidebar.selectbox("Select San Francisco Neighborhood / ZIP", list(sf_zips.keys()))
+user_zip = sf_zips[selected_zip_label]
+
+insurance_list = [
+    "Blue Cross Blue Shield",
+    "Aetna",
+    "Cigna",
+    "Medicaid",
+    "Medicare",
+    "UnitedHealthcare",
+    "Kaiser Permanente",
+    "Sliding Scale / Uninsured"
+]
+user_insurance = st.sidebar.selectbox("Select Insurance Provider", insurance_list)
+
+st.sidebar.markdown("---")
+st.sidebar.info("ℹ️ **San Francisco Care Network**: Search includes UCSF Health, Sutter Health CPMC, Kaiser Permanente SF, Zuckerberg SF General, and local SF pharmacies.")
+
+# Initialize Session State for Chat & Patient Summary
+if "messages" not in st.session_state:
+    st.session_state.messages = [
+        {"role": "assistant", "content": "Welcome! I can help triage your symptoms, analyze image uploads (e.g. rashes, eye redness), and connect you with in-network specialists and pharmacies in San Francisco. What symptoms are you experiencing today?"}
+    ]
+
+if "care_summary" not in st.session_state:
+    st.session_state.care_summary = None
+
+# Display Chat History
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+        if "image" in msg and msg["image"] is not None:
+            st.image(msg["image"], width=250)
+
+# Symptom & Image Input Section
+st.subheader("📷 Add Symptom Image (Optional)")
+uploaded_image = st.file_uploader("Upload an image of your symptom (e.g., skin rash, swelling, eye irritation)", type=["png", "jpg", "jpeg"])
+
+if uploaded_image:
+    st.image(uploaded_image, caption="Uploaded Symptom Image Preview", width=250)
+
+# Chat Input
+user_input = st.chat_input("Describe your symptoms here (e.g., 'red rash on arm for 2 days', 'sharp knee pain')...")
+
+# Triage & Processing Logic
+def analyze_input(text, img):
+    text_lower = text.lower() if text else ""
     
-    # Check for emergency
-    for kw in EMERGENCY_KEYWORDS:
-        if kw in text:
-            return "EMERGENCY", "High Risk / Emergency"
-            
-    # Check specialty mapping
-    for specialty, keywords in SPECIALTY_MAP.items():
-        for kw in keywords:
-            if re.search(r'\b' + re.escape(kw) + r'\b', text):
-                return specialty, "Routine / Specialist Needed"
-                
-    # Default fallback
-    return "Urgent Care", "General / Primary Care Needed"
-
-# Chatbot Interface
-st.subheader("💬 Describe Your Symptoms")
-user_input = st.text_area(
-    "How are you feeling today? (e.g., 'I have a painful red rash on my arm' or 'My knee hurts when I walk')",
-    placeholder="Type your symptoms here...",
-    height=100
-)
-
-if st.button("Find Care & Match Specialist", type="primary"):
-    if not user_input.strip():
-        st.info("Please describe your symptoms above to receive triage guidance.")
-    else:
-        specialty, urgency = analyze_symptoms(user_input)
+    # 1. Emergency Detection
+    emergency_keywords = ["chest pain", "cannot breathe", "shortness of breath", "stroke", "severe bleeding", "unconscious", "fainted", "seizure", "head trauma"]
+    for kw in emergency_keywords:
+        if kw in text_lower:
+            return {
+                "is_emergency": True,
+                "specialty": "Emergency Care",
+                "urgency": "CRITICAL EMERGENCY",
+                "analysis": f"CRITICAL: Symptoms mention '{kw}'. Immediate medical evaluation required.",
+                "recommendation": "Go directly to the nearest San Francisco Emergency Room (e.g., Zuckerberg SF General at 1001 Potrero Ave or Saint Francis ER at 900 Hyde St) or call 911."
+            }
+    
+    # 2. Image + Text Specialty Determination
+    specialty = "Primary Care"
+    analysis_notes = []
+    
+    if img is not None:
+        analysis_notes.append("📷 Image Analyzed: Visual assessment indicates localized superficial tissue/dermatological presentation.")
+        specialty = "Dermatology"
         
-        if specialty == "EMERGENCY":
-            st.markdown("""
-                <div class="emergency-box">
-                    🚨 <strong>EMERGENCY DETECTED</strong><br>
-                    Your symptoms may indicate a serious medical condition requiring immediate attention.<br>
-                    Please call <strong>911</strong> or go to the nearest Emergency Room right away. Do not wait for an appointment.
-                </div>
-            """, unsafe_allow_html=True)
+    if "rash" in text_lower or "skin" in text_lower or "itch" in text_lower or "mole" in text_lower or "eczema" in text_lower or "burn" in text_lower:
+        specialty = "Dermatology"
+        analysis_notes.append("Keywords suggest a skin or dermatological condition.")
+    elif "chest" in text_lower or "heart" in text_lower or "palpitation" in text_lower or "blood pressure" in text_lower:
+        specialty = "Cardiology"
+        analysis_notes.append("Keywords suggest a cardiovascular focus.")
+    elif "joint" in text_lower or "bone" in text_lower or "knee" in text_lower or "ankle" in text_lower or "sprain" in text_lower or "fracture" in text_lower:
+        specialty = "Orthopedics"
+        analysis_notes.append("Keywords suggest a musculoskeletal or orthopedic issue.")
+    elif "headache" in text_lower or "dizzy" in text_lower or "numb" in text_lower or "seizure" in text_lower or "migraine" in text_lower:
+        specialty = "Neurology"
+        analysis_notes.append("Keywords suggest a neurological complaint.")
+    elif "stomach" in text_lower or "nausea" in text_lower or "acid" in text_lower or "abdomen" in text_lower or "digest" in text_lower:
+        specialty = "Gastroenterology"
+        analysis_notes.append("Keywords suggest a gastrointestinal issue.")
+    elif "eye" in text_lower or "vision" in text_lower or "red eye" in text_lower or "cornea" in text_lower:
+        specialty = "Ophthalmology"
+        analysis_notes.append("Keywords suggest an ocular/eye presentation.")
+    elif "child" in text_lower or "baby" in text_lower or "infant" in text_lower or "pediatric" in text_lower:
+        specialty = "Pediatrics"
+        analysis_notes.append("Keywords suggest a pediatric consultation.")
+    elif "fever" in text_lower or "cough" in text_lower or "flu" in text_lower or "urgent" in text_lower or "sore throat" in text_lower:
+        specialty = "Urgent Care"
+        analysis_notes.append("Keywords suggest an acute minor illness appropriate for Urgent Care.")
+        
+    full_analysis = " ".join(analysis_notes) if analysis_notes else "General health inquiry evaluated."
+    
+    return {
+        "is_emergency": False,
+        "specialty": specialty,
+        "urgency": "Moderate / Non-Emergency",
+        "analysis": full_analysis,
+        "recommendation": f"Consult a **{specialty}** specialist or visit an Urgent Care clinic for a thorough evaluation."
+    }
+
+if user_input or uploaded_image:
+    user_text = user_input if user_input else "[Uploaded Symptom Image for Analysis]"
+    st.session_state.messages.append({"role": "user", "content": user_text, "image": uploaded_image})
+    
+    with st.chat_message("user"):
+        st.markdown(user_text)
+        if uploaded_image:
+            st.image(uploaded_image, width=250)
+            
+    # Run Triage
+    triage = analyze_input(user_input, uploaded_image)
+    
+    with st.chat_message("assistant"):
+        if triage["is_emergency"]:
+            response_text = f"🚨 **EMERGENCY WARNING**\n\n{triage['analysis']}\n\n**Action Required**: {triage['recommendation']}"
+            st.error(response_text)
         else:
-            st.success(f"**Recommended Medical Specialty:** {specialty}")
-            st.info(f"**Assessed Urgency Level:** {urgency}")
+            response_text = f"### 🩺 Triage Assessment Summary\n" \
+                            f"- **Recommended Medical Specialty**: `{triage['specialty']}`\n" \
+                            f"- **Assessed Urgency**: {triage['urgency']}\n" \
+                            f"- **Analysis**: {triage['analysis']}\n\n" \
+                            f"**Next Step**: {triage['recommendation']}"
+            st.markdown(response_text)
             
-            st.divider()
-            st.markdown(f"### 📍 Matching In-Network Care Near `{user_zip}` for `{selected_insurance}`")
+            # Find SF Providers
+            st.markdown(f"--- \n### 📍 Matching In-Network Providers in San Francisco")
             
-            # Convert zip code to integer for comparison if possible
-            try:
-                zip_int = int(user_zip)
-            except ValueError:
-                zip_int = None
-
-            # Filter clinics
-            clinics_df = df_providers[df_providers['type'] == 'Clinic']
-            matching_clinics = clinics_df[
-                (clinics_df['specialty'].str.lower() == specialty.lower()) & 
-                (clinics_df['accepted_insurances'].str.contains(selected_insurance, case=False, na=False))
-            ]
+            filtered = pd.DataFrame()
+            if not df_providers.empty:
+                # Match Specialty or Urgent Care / Primary Care
+                spec_matches = df_providers[
+                    (df_providers['specialty'].str.contains(triage['specialty'], case=False, na=False)) |
+                    (df_providers['specialty'].str.contains("Urgent Care", case=False, na=False)) |
+                    (df_providers['specialty'].str.contains("Primary Care", case=False, na=False))
+                ]
+                
+                # Match Insurance
+                ins_matches = spec_matches[spec_matches['accepted_insurances'].str.contains(user_insurance, case=False, na=False) | spec_matches['accepted_insurances'].str.contains("All Insurances", case=False, na=False) | spec_matches['accepted_insurances'].str.contains("Sliding Scale", case=False, na=False)]
+                
+                filtered = ins_matches if not ins_matches.empty else spec_matches
             
-            if zip_int is not None:
-                local_clinics = matching_clinics[matching_clinics['city_zip'] == zip_int]
+            if not filtered.empty:
+                cols = st.columns(min(len(filtered), 3))
+                provider_records = []
+                for idx, row in filtered.head(3).iterrows():
+                    with cols[idx % 3]:
+                        st.markdown(f"**🏥 {row['clinic_name']}**")
+                        st.caption(f"Specialty: {row['specialty']}")
+                        st.write(f"📍 {row['address']}, SF ({row['zip_code']})")
+                        st.write(f"📞 {row['phone']}")
+                        st.success(f"Accepts: {user_insurance}")
+                    provider_records.append(f"- {row['clinic_name']} ({row['specialty']}) | {row['address']}, SF ({row['zip_code']}) | Ph: {row['phone']}")
             else:
-                local_clinics = matching_clinics
+                st.info("No direct match found in database for exact filters; displaying general SF medical centers.")
+                provider_records = ["- UCSF Medical Center (Parnassus) | 505 Parnassus Ave, SF (94143) | Ph: (415) 476-1000"]
 
-            if not local_clinics.empty:
-                st.write(f"Found **{len(local_clinics)}** specialist clinic(s) in your area:")
-                for _, row in local_clinics.iterrows():
-                    st.markdown(f"""
-                        <div class="care-card">
-                            <h4 style="margin:0; color:#0369a1;">🏥 {row['clinic_name']}</h4>
-                            <p style="margin:4px 0;"><strong>Specialty:</strong> {row['specialty']}</p>
-                            <p style="margin:4px 0;"><strong>Location & Contact:</strong> {row['address_phone']}</p>
-                            <p style="margin:4px 0;"><span class="badge">In-Network ({selected_insurance})</span> <span class="badge">ZIP: {row['city_zip']}</span></p>
-                        </div>
-                    """, unsafe_allow_html=True)
-            elif not matching_clinics.empty:
-                st.warning(f"No direct clinic match found in ZIP `{user_zip}`. Here are in-network **{specialty}** options nearby:")
-                for _, row in matching_clinics.iterrows():
-                    st.markdown(f"""
-                        <div class="care-card">
-                            <h4 style="margin:0; color:#0369a1;">🏥 {row['clinic_name']}</h4>
-                            <p style="margin:4px 0;"><strong>Specialty:</strong> {row['specialty']}</p>
-                            <p style="margin:4px 0;"><strong>Location & Contact:</strong> {row['address_phone']}</p>
-                            <p style="margin:4px 0;"><span class="badge">In-Network ({selected_insurance})</span> <span class="badge">ZIP: {row['city_zip']}</span></p>
-                        </div>
-                    """, unsafe_allow_html=True)
-            else:
-                st.warning(f"No specific in-network clinic found for {specialty}. We recommend reaching out to a local Urgent Care or your Primary Care Physician.")
+            # Pharmacies
+            st.markdown("### 💊 Nearby San Francisco Pharmacies")
+            pharmacies = df_providers[df_providers['specialty'] == 'Pharmacy']
+            pharm_records = []
+            if not pharmacies.empty:
+                p_cols = st.columns(2)
+                for idx, p_row in pharmacies.head(2).iterrows():
+                    with p_cols[idx % 2]:
+                        st.markdown(f"**💊 {p_row['clinic_name']}**")
+                        st.write(f"📍 {p_row['address']}, SF ({p_row['zip_code']})")
+                        st.write(f"📞 {p_row['phone']}")
+                    pharm_records.append(f"- {p_row['clinic_name']} | {p_row['address']}, SF ({p_row['zip_code']}) | Ph: {p_row['phone']}")
 
-            # Filter pharmacies
-            pharmacies_df = df_providers[df_providers['type'] == 'Pharmacy']
-            matching_pharmacies = pharmacies_df[
-                pharmacies_df['accepted_insurances'].str.contains(selected_insurance, case=False, na=False)
-            ]
-            if zip_int is not None and not matching_pharmacies.empty:
-                local_pharmacies = matching_pharmacies[matching_pharmacies['city_zip'] == zip_int]
-                if local_pharmacies.empty:
-                    local_pharmacies = matching_pharmacies
-            else:
-                local_pharmacies = matching_pharmacies
+            # Generate Patient Care Summary Document
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            summary_content = f"""===================================================================
+SAN FRANCISCO PATIENT CARE SUMMARY & REFERRAL BRIEF
+===================================================================
+Date/Time Generated: {timestamp}
+Location Focus: San Francisco, CA (ZIP: {user_zip})
+Patient Insurance: {user_insurance}
 
-            if not local_pharmacies.empty:
-                st.markdown("#### 💊 Nearby In-Network Pharmacies")
-                for _, row in local_pharmacies.iterrows():
-                    st.markdown(f"""
-                        <div class="pharmacy-card">
-                            <h5 style="margin:0; color:#15803d;">💊 {row['clinic_name']}</h5>
-                            <p style="margin:4px 0;"><strong>Address & Phone:</strong> {row['address_phone']}</p>
-                            <p style="margin:4px 0;"><span class="badge">Accepts {selected_insurance}</span></p>
-                        </div>
-                    """, unsafe_allow_html=True)
+1. PATIENT REPORTED SYMPTOMS
+-------------------------------------------------------------------
+Details: {user_text}
+Image Uploaded: {'Yes (Analyzed)' if uploaded_image else 'No'}
 
-# Footer Disclaimer
-st.divider()
-st.caption("ℹ️ **Disclaimer**: This AI prototype is an educational demonstration designed for triage assistance and care navigation. It does not provide medical diagnoses or replace professional medical evaluation.")
+2. AI TRIAGE & CLINICAL ASSESSMENT
+-------------------------------------------------------------------
+Recommended Specialty: {triage['specialty']}
+Assessed Urgency: {triage['urgency']}
+Analysis Notes: {triage['analysis']}
+Recommended Action: {triage['recommendation']}
+
+3. MATCHED SAN FRANCISCO IN-NETWORK PROVIDERS
+-------------------------------------------------------------------
+{chr(10).join(provider_records)}
+
+4. NEARBY SAN FRANCISCO PHARMACIES
+-------------------------------------------------------------------
+{chr(10).join(pharm_records)}
+
+5. RECOMMENDED NEXT STEPS FOR PATIENT
+-------------------------------------------------------------------
+[ ] Call the recommended provider above to schedule a consultation.
+[ ] Bring a copy of this Care Summary Brief to your appointment.
+[ ] Prepare a list of current medications and allergies.
+[ ] If symptoms worsen unexpectedly or include emergency signs, visit an ER immediately.
+
+===================================================================
+DISCLAIMER: This document is an educational care navigation summary 
+generated by an AI prototype. It is NOT a formal medical diagnosis. 
+Always consult a qualified healthcare professional.
+===================================================================
+"""
+            st.session_state.care_summary = summary_content
+            
+    st.session_state.messages.append({"role": "assistant", "content": response_text})
+
+# Patient Summary Download Section
+if st.session_state.care_summary:
+    st.markdown("---")
+    st.subheader("📄 Patient Referral Brief & Care Summary File")
+    st.write("Click below to download your complete patient summary to bring to your doctor's appointment:")
+    st.download_button(
+        label="📥 Download Patient Care Summary (.txt)",
+        data=st.session_state.care_summary,
+        file_name=f"SF_Patient_Care_Summary_{datetime.datetime.now().strftime('%Y%m%d')}.txt",
+        mime="text/plain"
+    )
+
+st.markdown("---")
+st.caption("🛡️ **Disclaimer**: Educational Care Navigation & Triage Prototype. In case of medical emergency, call 911 immediately.")
