@@ -1,23 +1,24 @@
-clinic_name,specialty,accepted_insurances,city_zip,address_phone,type
-Metro Heart & Vascular Institute,Cardiology,"Medicaid, Blue Cross Blue Shield, Aetna, Medicare",90210,"123 Health Ave, Beverly Hills, CA | (555) 019-2831",Clinic
-Pacific Dermatology Center,Dermatology,"Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare",90210,"456 Skin Care Blvd, Beverly Hills, CA | (555) 012-9843",Clinic
-Sunset Community Health Center,Urgent Care,"Medicaid, Medicare, Cash/Uninsured, Blue Cross Blue Shield",90210,"789 Sunset Blvd, Beverly Hills, CA | (555) 014-5512",Clinic
-Westside Orthopedic & Joint Center,Orthopedics,"Aetna, Cigna, UnitedHealthcare, Medicare",90210,"321 Motion Way, Beverly Hills, CA | (555) 018-7720",Clinic
-Beverly Neurology & Brain Health,Neurology,"Blue Cross Blue Shield, Aetna, Medicare",90210,"654 Brain Tech Dr, Beverly Hills, CA | (555) 016-3399",Clinic
-Angeleno Gastroenterology Clinic,Gastroenterology,"Medicaid, Cigna, UnitedHealthcare, Medicare",90210,"147 Digestive Care Ln, Beverly Hills, CA | (555) 011-4488",Clinic
-Mindful Behavioral Health,Psychiatry,"Medicaid, Blue Cross Blue Shield, Cash/Uninsured",90210,"258 Peace St, Beverly Hills, CA | (555) 017-6622",Clinic
-Vision Care Specialists,Ophthalmology,"Blue Cross Blue Shield, Aetna, Medicare",90210,"369 Optical Way, Beverly Hills, CA | (555) 013-8811",Clinic
-CVS Pharmacy #4921,Pharmacy,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare, Medicare",90210,"500 Wilshire Blvd, Beverly Hills, CA | (555) 019-1000",Pharmacy
-Walgreens Pharmacy #1082,Pharmacy,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare, Medicare",90210,"8400 Olympic Blvd, Beverly Hills, CA | (555) 019-2000",Pharmacy
-Manhattan Cardiovascular Associates,Cardiology,"Blue Cross Blue Shield, Aetna, Cigna, Medicare",10001,"150 5th Ave, New York, NY | (212) 555-0199",Clinic
-Gotham Dermatology Clinic,Dermatology,"Medicaid, Blue Cross Blue Shield, UnitedHealthcare",10001,"350 7th Ave, New York, NY | (212) 555-0144",Clinic
-Empire Urgent Care & Family Medicine,Urgent Care,"Medicaid, Medicare, Cash/Uninsured, Aetna, Cigna",10001,"500 8th Ave, New York, NY | (212) 555-0177",Clinic
-NYC Orthopedics & Sports Medicine,Orthopedics,"Blue Cross Blue Shield, Cigna, UnitedHealthcare",10001,"200 W 34th St, New York, NY | (212) 555-0122",Clinic
-Midtown Neurology Specialists,Neurology,"Aetna, Medicare, UnitedHealthcare",10001,"400 Madison Ave, New York, NY | (212) 555-0188",Clinic
-Hudson Valley Gastroenterology,Gastroenterology,"Medicaid, Blue Cross Blue Shield, Aetna",10001,"100 10th Ave, New York, NY | (212) 555-0133",Clinic
-Duane Reade Pharmacy #3301,Pharmacy,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare, Medicare",10001,"300 8th Ave, New York, NY | (212) 555-0111",Pharmacy
-Rite Aid Pharmacy #4412,Pharmacy,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare, Medicare",10001,"408 8th Ave, New York, NY | (212) 555-0155",Pharmacy
-Central Texas Heart Institute,Cardiology,"Medicaid, Blue Cross Blue Shield, Medicare, Aetna",78701,"600 Congress Ave, Austin, TX | (512) 555-0188",Clinic
-Austin Community Urgent Care,Urgent Care,"Medicaid, Medicare, Cash/Uninsured, Blue Cross Blue Shield",78701,"1100 E 7th St, Austin, TX | (512) 555-0199",Clinic
-Capital Dermatology Group,Dermatology,"Aetna, Cigna, UnitedHealthcare, Medicare",78701,"300 W 6th St, Austin, TX | (512) 555-0144",Clinic
-H-E-B Pharmacy #204,Pharmacy,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare, Medicare",78701,"702 E 7th St, Austin, TX | (512) 555-0133",Pharmacy
+clinic_name,specialty,accepted_insurances,city,zip_code,address,phone
+UCSF Heart & Vascular Center,Cardiology,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94143,505 Parnassus Ave,(415) 476-1000
+UCSF Dermatology Clinic,Dermatology,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94115,1701 Divisadero St,(415) 353-7800
+CPMC Orthopedic Institute,Orthopedics,"Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94114,45 Castro St,(415) 600-6000
+UCSF Neurology Clinic,Neurology,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94143,400 Parnassus Ave,(415) 353-2273
+Sutter Health CPMC Gastroenterology,Gastroenterology,"Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94109,1101 Van Ness Ave,(415) 600-1000
+Kaiser Permanente SF Cardiology,Cardiology,"Kaiser Permanente, Medicare",San Francisco,94115,2425 Geary Blvd,(415) 833-2000
+Kaiser Permanente SF Dermatology,Dermatology,"Kaiser Permanente, Medicare",San Francisco,94115,2425 Geary Blvd,(415) 833-2000
+Sutter Health CPMC Urgent Care,Urgent Care,"Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94109,1101 Van Ness Ave,(415) 600-6000
+GoHealth Urgent Care (Castro),Urgent Care,"Blue Cross Blue Shield, Aetna, Cigna, Medicare, Medicaid",San Francisco,94114,2288 Market St,(415) 965-7944
+Golden Gate Urgent Care (Financial Dist),Urgent Care,"Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare",San Francisco,94105,199 Stevenson St,(415) 854-1840
+Zuckerberg SF General Emergency & Trauma,Emergency / Urgent Care,"Medicaid, Medicare, Blue Cross Blue Shield, Sliding Scale",San Francisco,94110,1001 Potrero Ave,(415) 206-8000
+UCSF Benioff Children's Hospital,Pediatrics,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, Medicare",San Francisco,94158,1825 4th St,(415) 476-1000
+One Medical (Financial District),Primary Care,"Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare",San Francisco,94104,220 Montgomery St,(415) 523-0863
+One Medical (Mission District),Primary Care,"Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare",San Francisco,94110,3490 20th St,(415) 523-0863
+Saint Francis Memorial Hospital ER,Emergency / Urgent Care,"Blue Cross Blue Shield, Aetna, Cigna, Medicare, Medicaid",San Francisco,94109,900 Hyde St,(415) 353-6000
+Mission Neighborhood Health Center,Primary Care,"Medicaid, Medicare, Sliding Scale, Uninsured",San Francisco,94110,240 Shotwell St,(415) 552-3870
+UCSF Ophthalmology & Eye Center,Ophthalmology,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, Medicare",San Francisco,94158,490 Illinois St,(415) 353-2020
+Pacific Family Practice,Primary Care,"Blue Cross Blue Shield, Aetna, Cigna, Medicare",San Francisco,94111,1 Battery St,(415) 433-5600
+Walgreens Pharmacy (Powell St),Pharmacy,"All Insurances, Medicaid, Medicare, Blue Cross Blue Shield, Aetna, Cigna, Kaiser",San Francisco,94102,135 Powell St,(415) 391-7222
+CVS Pharmacy (Mission St),Pharmacy,"All Insurances, Medicaid, Medicare, Blue Cross Blue Shield, Aetna, Cigna, Kaiser",San Francisco,94105,601 Mission St,(415) 442-0120
+Walgreens Pharmacy (Castro),Pharmacy,"All Insurances, Medicaid, Medicare, Blue Cross Blue Shield, Aetna, Cigna, Kaiser",San Francisco,94114,498 Castro St,(415) 861-3136
+UCSF Outpatient Pharmacy,Pharmacy,"All Insurances, Medicaid, Medicare, Blue Cross Blue Shield, Aetna, Cigna",San Francisco,94143,505 Parnassus Ave,(415) 353-1544
+CVS Pharmacy (Geary Blvd),Pharmacy,"All Insurances, Medicaid, Medicare, Blue Cross Blue Shield, Aetna, Cigna",San Francisco,94121,377 32nd Ave,(415) 666-3114
