@@ -1,0 +1,23 @@
+clinic_name,specialty,accepted_insurances,city_zip,address_phone,type
+Metro Heart & Vascular Institute,Cardiology,"Medicaid, Blue Cross Blue Shield, Aetna, Medicare",90210,"123 Health Ave, Beverly Hills, CA | (555) 019-2831",Clinic
+Pacific Dermatology Center,Dermatology,"Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare",90210,"456 Skin Care Blvd, Beverly Hills, CA | (555) 012-9843",Clinic
+Sunset Community Health Center,Urgent Care,"Medicaid, Medicare, Cash/Uninsured, Blue Cross Blue Shield",90210,"789 Sunset Blvd, Beverly Hills, CA | (555) 014-5512",Clinic
+Westside Orthopedic & Joint Center,Orthopedics,"Aetna, Cigna, UnitedHealthcare, Medicare",90210,"321 Motion Way, Beverly Hills, CA | (555) 018-7720",Clinic
+Beverly Neurology & Brain Health,Neurology,"Blue Cross Blue Shield, Aetna, Medicare",90210,"654 Brain Tech Dr, Beverly Hills, CA | (555) 016-3399",Clinic
+Angeleno Gastroenterology Clinic,Gastroenterology,"Medicaid, Cigna, UnitedHealthcare, Medicare",90210,"147 Digestive Care Ln, Beverly Hills, CA | (555) 011-4488",Clinic
+Mindful Behavioral Health,Psychiatry,"Medicaid, Blue Cross Blue Shield, Cash/Uninsured",90210,"258 Peace St, Beverly Hills, CA | (555) 017-6622",Clinic
+Vision Care Specialists,Ophthalmology,"Blue Cross Blue Shield, Aetna, Medicare",90210,"369 Optical Way, Beverly Hills, CA | (555) 013-8811",Clinic
+CVS Pharmacy #4921,Pharmacy,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare, Medicare",90210,"500 Wilshire Blvd, Beverly Hills, CA | (555) 019-1000",Pharmacy
+Walgreens Pharmacy #1082,Pharmacy,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare, Medicare",90210,"8400 Olympic Blvd, Beverly Hills, CA | (555) 019-2000",Pharmacy
+Manhattan Cardiovascular Associates,Cardiology,"Blue Cross Blue Shield, Aetna, Cigna, Medicare",10001,"150 5th Ave, New York, NY | (212) 555-0199",Clinic
+Gotham Dermatology Clinic,Dermatology,"Medicaid, Blue Cross Blue Shield, UnitedHealthcare",10001,"350 7th Ave, New York, NY | (212) 555-0144",Clinic
+Empire Urgent Care & Family Medicine,Urgent Care,"Medicaid, Medicare, Cash/Uninsured, Aetna, Cigna",10001,"500 8th Ave, New York, NY | (212) 555-0177",Clinic
+NYC Orthopedics & Sports Medicine,Orthopedics,"Blue Cross Blue Shield, Cigna, UnitedHealthcare",10001,"200 W 34th St, New York, NY | (212) 555-0122",Clinic
+Midtown Neurology Specialists,Neurology,"Aetna, Medicare, UnitedHealthcare",10001,"400 Madison Ave, New York, NY | (212) 555-0188",Clinic
+Hudson Valley Gastroenterology,Gastroenterology,"Medicaid, Blue Cross Blue Shield, Aetna",10001,"100 10th Ave, New York, NY | (212) 555-0133",Clinic
+Duane Reade Pharmacy #3301,Pharmacy,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare, Medicare",10001,"300 8th Ave, New York, NY | (212) 555-0111",Pharmacy
+Rite Aid Pharmacy #4412,Pharmacy,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare, Medicare",10001,"408 8th Ave, New York, NY | (212) 555-0155",Pharmacy
+Central Texas Heart Institute,Cardiology,"Medicaid, Blue Cross Blue Shield, Medicare, Aetna",78701,"600 Congress Ave, Austin, TX | (512) 555-0188",Clinic
+Austin Community Urgent Care,Urgent Care,"Medicaid, Medicare, Cash/Uninsured, Blue Cross Blue Shield",78701,"1100 E 7th St, Austin, TX | (512) 555-0199",Clinic
+Capital Dermatology Group,Dermatology,"Aetna, Cigna, UnitedHealthcare, Medicare",78701,"300 W 6th St, Austin, TX | (512) 555-0144",Clinic
+H-E-B Pharmacy #204,Pharmacy,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare, Medicare",78701,"702 E 7th St, Austin, TX | (512) 555-0133",Pharmacy
