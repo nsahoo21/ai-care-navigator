@@ -8,7 +8,7 @@ import streamlit.components.v1 as components
 
 # Page Config
 st.set_page_config(
-    page_title="Hello Provider - AI Patient Care & Triage",
+    page_title="Hello Provider v10 - AI Patient Care & Triage",
     page_icon="🩺",
     layout="wide"
 )
@@ -216,32 +216,66 @@ st.markdown("### 🎙️ Speech-to-Text & Chat Input")
 st.caption("Click **🎙️ Start Speaking** to talk. When you stop speaking, your transcribed speech is automatically captured so you can send it immediately into the chat!")
 
 speech_html = """
-<div style="font-family: system-ui, sans-serif; padding: 12px; border: 1.5px solid #0284c7; border-radius: 10px; background-color: #f0f9ff; margin-bottom: 10px;">
+<div style="font-family: system-ui, sans-serif; padding: 14px; border: 1.5px solid #0284c7; border-radius: 12px; background-color: #f0f9ff; margin-bottom: 12px;">
     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
         <button id="start-btn" style="background-color: #0284c7; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95em;">
             🎙️ Start Speaking (Mic)
         </button>
         <button id="stop-btn" style="background-color: #dc2626; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95em;">
-            🛑 Stop
+            🛑 Stop & Transcribe
+        </button>
+        <button id="send-btn" style="background-color: #16a34a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95em;">
+            🚀 Send Directly to Chat
         </button>
         <span id="status" style="font-size: 0.9em; font-weight: 600; color: #0369a1;">Status: Ready to listen</span>
     </div>
-    <textarea id="transcript" style="width: 100%; height: 60px; margin-top: 10px; border-radius: 8px; border: 1px solid #93c5fd; padding: 8px; font-size: 0.95em;" placeholder="Your spoken words will appear here automatically when you speak..."></textarea>
-    <div style="margin-top: 6px; font-size: 0.85em; color: #475569;">
-        💡 <em>Tip: You can copy your transcribed speech into the chat box below or send it directly!</em>
+    <textarea id="transcript" style="width: 100%; height: 65px; margin-top: 10px; border-radius: 8px; border: 1px solid #93c5fd; padding: 8px; font-size: 0.95em;" placeholder="Your spoken words will appear here automatically when you speak..."></textarea>
+    <div style="margin-top: 6px; font-size: 0.85em; color: #334155;">
+        💡 <em>Auto-Send Feature: Click <strong>🚀 Send Directly to Chat</strong> or stop speaking to automatically transfer your speech into the chat!</em>
     </div>
 </div>
 
 <script>
     const startBtn = document.getElementById('start-btn');
     const stopBtn = document.getElementById('stop-btn');
+    const sendBtn = document.getElementById('send-btn');
     const statusDiv = document.getElementById('status');
     const transcriptArea = document.getElementById('transcript');
+
+    function autoSendToStreamlitChat(text) {
+        if (!text || !text.trim()) return false;
+        try {
+            const parentDoc = window.parent.document;
+            const chatInput = parentDoc.querySelector('textarea[data-testid="stChatInputTextArea"]') || parentDoc.querySelector('textarea');
+            if (chatInput) {
+                const valueSetter = Object.getOwnPropertyDescriptor(window.parent.HTMLTextAreaElement.prototype, "value").set;
+                valueSetter.call(chatInput, text);
+                chatInput.dispatchEvent(new Event('input', { bubbles: true }));
+                chatInput.dispatchEvent(new Event('change', { bubbles: true }));
+                
+                setTimeout(() => {
+                    const submitBtn = parentDoc.querySelector('button[data-testid="stChatInputSubmitButton"]') || parentDoc.querySelector('button[aria-label="Send"]');
+                    if (submitBtn) {
+                        submitBtn.click();
+                    } else {
+                        const enterEvt = new KeyboardEvent('keydown', {
+                            bubbles: true, cancelable: true, keyCode: 13, key: 'Enter', code: 'Enter'
+                        });
+                        chatInput.dispatchEvent(enterEvt);
+                    }
+                }, 250);
+                return true;
+            }
+        } catch (err) {
+            console.log('Streamlit chat auto-send fallback triggered:', err);
+        }
+        return false;
+    }
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-        statusDiv.innerHTML = "⚠️ Speech Recognition is not supported in this browser. Please type in the chat box below.";
+        statusDiv.innerHTML = "⚠️ Speech Recognition is not supported in this browser. Please type directly into the chat box below.";
     } else {
         const recognition = new SpeechRecognition();
         recognition.continuous = true;
@@ -254,12 +288,12 @@ speech_html = """
         };
 
         recognition.onerror = (event) => {
-            statusDiv.innerHTML = "⚠️ Error: " + event.error;
+            statusDiv.innerHTML = "⚠️ Speech error: " + event.error;
             statusDiv.style.color = "#dc2626";
         };
 
         recognition.onend = () => {
-            statusDiv.innerHTML = "✅ Speech captured! Copy/paste or submit into the chat box below.";
+            statusDiv.innerHTML = "✅ Speech captured!";
             statusDiv.style.color = "#15803d";
         };
 
@@ -272,7 +306,21 @@ speech_html = """
         };
 
         startBtn.addEventListener('click', () => recognition.start());
-        stopBtn.addEventListener('click', () => recognition.stop());
+        stopBtn.addEventListener('click', () => {
+            recognition.stop();
+        });
+        
+        sendBtn.addEventListener('click', () => {
+            recognition.stop();
+            const text = transcriptArea.value;
+            const success = autoSendToStreamlitChat(text);
+            if (success) {
+                statusDiv.innerHTML = "🚀 Sent directly to chat!";
+                statusDiv.style.color = "#16a34a";
+            } else {
+                statusDiv.innerHTML = "📋 Transcribed! You can copy/paste or submit into the chat input below.";
+            }
+        });
     }
 </script>
 """
