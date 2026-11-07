@@ -300,7 +300,7 @@ def validate_required(age, sex, severity, timeline, text, images_list):
 def analyze_input(text, images_list, severity_label, age, timeline, events, travel, intake_food):
     text_lower = text.lower() if text else ""
     
-    # Emergency Keyword & Severity Checks
+    # 1. Emergency Keyword & Severity Checks
     emergency_keywords = ["chest pain", "cannot breathe", "shortness of breath", "stroke", "severe bleeding", "unconscious", "fainted", "seizure", "head trauma"]
     is_extreme = "Extreme" in severity_label
     
@@ -316,72 +316,133 @@ def analyze_input(text, images_list, severity_label, age, timeline, events, trav
                 "analysis": f"Critical Safety Alert: Your reported {reason}. Immediate emergency evaluation is vital.",
                 "recommendation": "Please go directly to the nearest San Francisco Emergency Room (e.g., Zuckerberg SF General at 1001 Potrero Ave or Saint Francis ER at 900 Hyde St) or call 911 immediately."
             }
-            
-    # Specialty & Contextual Analysis
-    specialty = "Primary Care"
-    suspected_condition = "General Acute Illness / Symptom Evaluation"
-    associated_symptoms = ["Mild fatigue", "General malaise", "Low-grade temperature changes", "Slight discomfort"]
+
+    # 2. Multi-Keyword & Phrase NLP Scoring Engine
+    specialty_profiles = {
+        "Orthopedics": {
+            "keywords": [
+                "muscle", "muscles", "soreness", "tenderness", "stiffness", "spasm", "spasms",
+                "cramp", "cramps", "tightness", "limb", "limbs", "joint", "joints", "knee",
+                "ankle", "shoulder", "wrist", "elbow", "back", "spine", "bone", "bones",
+                "fracture", "sprain", "strain", "fall", "injury", "exertion", "movement",
+                "range of motion", "heavy limbs", "aching", "ache", "muscles hurt", "muscle pain", "myalgia", "reaction times"
+            ],
+            "weight": 1.5,
+            "condition": "Musculoskeletal Strain, Exertional Myalgia, or Joint Stiffness",
+            "associated": ["Localized muscle soreness or tenderness", "Joint stiffness or reduced motion", "Muscle spasms or cramping", "Fatigue after physical exertion"],
+            "notes": "Symptom description points to musculoskeletal, muscle fatigue, or orthopedic evaluation."
+        },
+        "Dermatology": {
+            "keywords": [
+                "rash", "skin", "itch", "itching", "itchy", "mole", "eczema", "hives",
+                "dermatitis", "lesion", "blister", "blisters", "sunburn", "wound", "skin burn", "flaking", "scaling"
+            ],
+            "weight": 1.2,
+            "condition": "Dermatological Reaction / Eczema or Contact Rash",
+            "associated": ["Itching or skin soreness", "Redness or color change", "Dryness or flaking", "Mild swelling around affected area"],
+            "notes": "Symptom description aligns with dermatological evaluation."
+        },
+        "Cardiology": {
+            "keywords": [
+                "chest pain", "heart", "palpitation", "palpitations", "blood pressure",
+                "bp", "cardiac", "fluttering pulse", "angina", "irregular heartbeat"
+            ],
+            "weight": 1.5,
+            "condition": "Non-Emergency Cardiovascular Stress / Palpitations",
+            "associated": ["Lightheadedness or dizziness", "Shortness of breath on exertion", "Racing or fluttering pulse", "General fatigue"],
+            "notes": "Symptom description aligns with cardiovascular evaluation."
+        },
+        "Neurology": {
+            "keywords": [
+                "headache", "headaches", "migraine", "dizzy", "dizziness", "numb", "numbness",
+                "tingling", "seizure", "nerve", "neuropathy", "brain", "aura"
+            ],
+            "weight": 1.3,
+            "condition": "Tension Headache, Migraine, or Nerve Sensitivity",
+            "associated": ["Sensitivity to light or sound", "Mild nausea or aura", "Neck tightness or stiffness", "Dizziness or head pressure"],
+            "notes": "Symptom description aligns with neurological evaluation."
+        },
+        "Gastroenterology": {
+            "keywords": [
+                "stomach", "nausea", "vomiting", "abdomen", "abdominal", "cramp", "cramping",
+                "acid", "reflux", "gerd", "heartburn", "bloating", "indigestion", "diarrhea", "constipation"
+            ],
+            "weight": 1.3,
+            "condition": "Acute Gastritis, Acid Reflux (GERD), or Indigestion",
+            "associated": ["Bloating or abdominal fullness", "Nausea or sour taste", "Stomach cramping after eating", "Loss of appetite"],
+            "notes": "Symptom description aligns with gastrointestinal evaluation."
+        },
+        "Ophthalmology": {
+            "keywords": [
+                "eye", "eyes", "vision", "ocular", "cornea", "conjunctivitis", "red eye", "blurry vision"
+            ],
+            "weight": 1.4,
+            "condition": "Conjunctivitis (Red Eye) or Ocular Irritation",
+            "associated": ["Eye redness or tearing", "Sensation of grit or dust in eye", "Sensitivity to bright light", "Mild discharge or eyelid crusting"],
+            "notes": "Symptom description points to ocular/eye evaluation."
+        },
+        "Urgent Care": {
+            "keywords": [
+                "fever", "cough", "flu", "sore throat", "chills", "runny nose", "congestion", "infection", "cold"
+            ],
+            "weight": 1.2,
+            "condition": "Viral Upper Respiratory Infection or Influenza-like Illness",
+            "associated": ["Low-grade fever or chills", "Sore throat or dry cough", "Nasal congestion or runny nose", "Generalized body aches and fatigue"],
+            "notes": "Symptoms are consistent with acute minor illness appropriate for Urgent Care."
+        }
+    }
+
+    # Calculate scores across all specialty profiles
+    scores = {}
+    for spec, data in specialty_profiles.items():
+        score = 0
+        for kw in data["keywords"]:
+            if kw in text_lower:
+                # Avoid false positive "burn" in "burning sensation" triggering Dermatology without skin context
+                if spec == "Dermatology" and kw in ["burn", "skin burn"] and "burning sensation" in text_lower:
+                    if not any(skin_w in text_lower for skin_w in ["skin", "rash", "itch", "mole", "blister", "eczema"]):
+                        continue
+                score += 1 * data["weight"]
+        scores[spec] = score
+
+    best_spec = max(scores, key=scores.get)
+    max_score = scores[best_spec]
+
+    if max_score > 0:
+        specialty = best_spec
+        suspected_condition = specialty_profiles[best_spec]["condition"]
+        associated_symptoms = specialty_profiles[best_spec]["associated"]
+        primary_note = specialty_profiles[best_spec]["notes"]
+    else:
+        specialty = "Primary Care"
+        suspected_condition = "General Acute Illness / Symptom Evaluation"
+        associated_symptoms = ["Mild fatigue", "General malaise", "Low-grade temperature changes", "Slight discomfort"]
+        primary_note = "General health inquiry evaluated."
+
     notes = []
-    
     if age < 18:
         notes.append("Pediatric care protocol flagged due to patient age.")
         specialty = "Pediatrics"
-        
+
     if len(images_list) == 1:
         notes.append("📷 Visual photo review indicates localized dermatological or tissue presentation.")
-        if specialty != "Pediatrics":
+        if max_score == 0 and specialty != "Pediatrics":
             specialty = "Dermatology"
             suspected_condition = "Dermatological Lesion / Skin Inflammation"
             associated_symptoms = ["Itching or localized soreness", "Redness or color change", "Mild scaling or flaking"]
     elif len(images_list) > 1:
         notes.append(f"📸 Multi-Image Comparison Analyzed ({len(images_list)} photos provided, e.g. Baseline vs. Current Status): Evaluated visual progression, swelling changes, tissue healing, or rash expansion across time points.")
-        if specialty != "Pediatrics":
+        if max_score == 0 and specialty != "Pediatrics":
             specialty = "Dermatology"
             suspected_condition = "Progressive Dermatological Reaction / Eczema or Spreading Rash"
             associated_symptoms = ["Evolving skin redness or expansion", "Itching or burning sensation", "Flaking or surface changes", "Localized swelling"]
-            
-    if "rash" in text_lower or "skin" in text_lower or "itch" in text_lower or "mole" in text_lower or "burn" in text_lower or "wound" in text_lower:
-        specialty = "Dermatology"
-        suspected_condition = "Dermatological Reaction / Eczema or Contact Rash"
-        associated_symptoms = ["Itching or skin soreness", "Redness or color change", "Dryness or flaking", "Mild swelling around affected area"]
-        notes.append("Symptom description aligns with dermatological evaluation.")
-    elif "chest" in text_lower or "heart" in text_lower or "palpitation" in text_lower or "bp" in text_lower:
-        specialty = "Cardiology"
-        suspected_condition = "Non-Emergency Cardiovascular Stress / Palpitations"
-        associated_symptoms = ["Lightheadedness or dizziness", "Shortness of breath on exertion", "Racing or fluttering pulse", "General fatigue"]
-        notes.append("Symptom description aligns with cardiovascular evaluation.")
-    elif "knee" in text_lower or "joint" in text_lower or "ankle" in text_lower or "bone" in text_lower or "sprain" in text_lower or "fracture" in text_lower or "fall" in text_lower or "injury" in text_lower:
-        specialty = "Orthopedics"
-        suspected_condition = "Acute Musculoskeletal Strain or Joint Sprain"
-        associated_symptoms = ["Localized swelling or bruising", "Joint stiffness or reduced movement", "Pain when bearing weight", "Tenderness to touch"]
-        notes.append("Symptom description points to musculoskeletal or orthopedic evaluation.")
-    elif "headache" in text_lower or "dizzy" in text_lower or "migraine" in text_lower or "numb" in text_lower:
-        specialty = "Neurology"
-        suspected_condition = "Tension Headache, Migraine, or Nerve Sensitivity"
-        associated_symptoms = ["Sensitivity to light or sound", "Mild nausea or aura", "Neck tightness or stiffness", "Dizziness or head pressure"]
-        notes.append("Symptom description aligns with neurological evaluation.")
-    elif "stomach" in text_lower or "nausea" in text_lower or "abdomen" in text_lower or "cramp" in text_lower or "acid" in text_lower:
-        specialty = "Gastroenterology"
-        suspected_condition = "Acute Gastritis, Acid Reflux (GERD), or Indigestion"
-        associated_symptoms = ["Bloating or abdominal fullness", "Nausea or sour taste", "Stomach cramping after eating", "Loss of appetite"]
-        notes.append("Symptom description aligns with gastrointestinal evaluation.")
-    elif "eye" in text_lower or "vision" in text_lower or "redness" in text_lower:
-        specialty = "Ophthalmology"
-        suspected_condition = "Conjunctivitis (Red Eye) or Ocular Irritation"
-        associated_symptoms = ["Eye redness or tearing", "Sensation of grit or dust in eye", "Sensitivity to bright light", "Mild discharge or eyelid crusting"]
-        notes.append("Symptom description points to ocular/eye evaluation.")
-    elif "fever" in text_lower or "cough" in text_lower or "flu" in text_lower or "sore throat" in text_lower:
-        specialty = "Urgent Care"
-        suspected_condition = "Viral Upper Respiratory Infection or Influenza-like Illness"
-        associated_symptoms = ["Low-grade fever or chills", "Sore throat or dry cough", "Nasal congestion or runny nose", "Generalized body aches and fatigue"]
-        notes.append("Symptoms are consistent with acute minor illness appropriate for Urgent Care.")
-        
+
+    notes.append(primary_note)
+
     if travel and travel.lower() != "none":
         notes.append(f"Recent international travel noted: '{travel}'.")
-        
     if events:
         notes.append(f"Events leading up to symptoms: '{events}'.")
-        
     if intake_food:
         notes.append(f"Last oral intake: '{intake_food}'.")
         
