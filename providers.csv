@@ -1,24 +1,24 @@
-clinic_name,specialty,accepted_insurances,city,zip_code,address,phone
-UCSF Heart & Vascular Center,Cardiology,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94143,505 Parnassus Ave,(415) 476-1000
-UCSF Dermatology Clinic,Dermatology,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94115,1701 Divisadero St,(415) 353-7800
-CPMC Orthopedic Institute,Orthopedics,"Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94114,45 Castro St,(415) 600-6000
-UCSF Neurology Clinic,Neurology,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94143,400 Parnassus Ave,(415) 353-2273
-Sutter Health CPMC Gastroenterology,Gastroenterology,"Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94109,1101 Van Ness Ave,(415) 600-1000
-Kaiser Permanente SF Cardiology,Cardiology,"Kaiser Permanente, Medicare",San Francisco,94115,2425 Geary Blvd,(415) 833-2000
-Kaiser Permanente SF Dermatology,Dermatology,"Kaiser Permanente, Medicare",San Francisco,94115,2425 Geary Blvd,(415) 833-2000
-Sutter Health CPMC Urgent Care,Urgent Care,"Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94109,1101 Van Ness Ave,(415) 600-6000
-GoHealth Urgent Care (Castro),Urgent Care,"Blue Cross Blue Shield, Aetna, Cigna, Medicare, Medicaid",San Francisco,94114,2288 Market St,(415) 965-7944
-Golden Gate Urgent Care (Financial Dist),Urgent Care,"Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare",San Francisco,94105,199 Stevenson St,(415) 854-1840
-Zuckerberg SF General Emergency & Trauma,Emergency / Urgent Care,"Medicaid, Medicare, Blue Cross Blue Shield, Sliding Scale",San Francisco,94110,1001 Potrero Ave,(415) 206-8000
-UCSF Benioff Children's Hospital,Pediatrics,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, Medicare",San Francisco,94158,1825 4th St,(415) 476-1000
-One Medical (Financial District),Primary Care,"Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare",San Francisco,94104,220 Montgomery St,(415) 523-0863
-One Medical (Mission District),Primary Care,"Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare",San Francisco,94110,3490 20th St,(415) 523-0863
-Saint Francis Memorial Hospital ER,Emergency / Urgent Care,"Blue Cross Blue Shield, Aetna, Cigna, Medicare, Medicaid",San Francisco,94109,900 Hyde St,(415) 353-6000
-Mission Neighborhood Health Center,Primary Care,"Medicaid, Medicare, Sliding Scale, Uninsured",San Francisco,94110,240 Shotwell St,(415) 552-3870
-UCSF Ophthalmology & Eye Center,Ophthalmology,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, Medicare",San Francisco,94158,490 Illinois St,(415) 353-2020
-Pacific Family Practice,Primary Care,"Blue Cross Blue Shield, Aetna, Cigna, Medicare",San Francisco,94111,1 Battery St,(415) 433-5600
-Walgreens Pharmacy (Powell St),Pharmacy,"All Insurances, Medicaid, Medicare, Blue Cross Blue Shield, Aetna, Cigna, Kaiser",San Francisco,94102,135 Powell St,(415) 391-7222
-CVS Pharmacy (Mission St),Pharmacy,"All Insurances, Medicaid, Medicare, Blue Cross Blue Shield, Aetna, Cigna, Kaiser",San Francisco,94105,601 Mission St,(415) 442-0120
-Walgreens Pharmacy (Castro),Pharmacy,"All Insurances, Medicaid, Medicare, Blue Cross Blue Shield, Aetna, Cigna, Kaiser",San Francisco,94114,498 Castro St,(415) 861-3136
-UCSF Outpatient Pharmacy,Pharmacy,"All Insurances, Medicaid, Medicare, Blue Cross Blue Shield, Aetna, Cigna",San Francisco,94143,505 Parnassus Ave,(415) 353-1544
-CVS Pharmacy (Geary Blvd),Pharmacy,"All Insurances, Medicaid, Medicare, Blue Cross Blue Shield, Aetna, Cigna",San Francisco,94121,377 32nd Ave,(415) 666-3114
+clinic_name,specialty,accepted_insurances,city,zip_code,address,phone,website
+UCSF Heart & Vascular Center,Cardiology,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94143,505 Parnassus Ave,(415) 476-1000,https://www.ucsfhealth.org
+UCSF Dermatology Clinic,Dermatology,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94115,1701 Divisadero St,(415) 353-7800,https://www.ucsfhealth.org
+CPMC Orthopedic Institute,Orthopedics,"Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94114,45 Castro St,(415) 600-6000,https://www.sutterhealth.org
+UCSF Neurology Clinic,Neurology,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94143,400 Parnassus Ave,(415) 353-2273,https://www.ucsfhealth.org
+Sutter Health CPMC Gastroenterology,Gastroenterology,"Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94109,1101 Van Ness Ave,(415) 600-1000,https://www.sutterhealth.org
+Kaiser Permanente SF Cardiology,Cardiology,"Kaiser Permanente, Medicare",San Francisco,94115,2425 Geary Blvd,(415) 833-2000,https://healthy.kaiserpermanente.org
+Kaiser Permanente SF Dermatology,Dermatology,"Kaiser Permanente, Medicare",San Francisco,94115,2425 Geary Blvd,(415) 833-2000,https://healthy.kaiserpermanente.org
+Sutter Health CPMC Urgent Care,Urgent Care,"Blue Cross Blue Shield, Aetna, Cigna, Medicare, UnitedHealthcare",San Francisco,94109,1101 Van Ness Ave,(415) 600-6000,https://www.sutterhealth.org
+GoHealth Urgent Care (Castro),Urgent Care,"Blue Cross Blue Shield, Aetna, Cigna, Medicare, Medicaid",San Francisco,94114,2288 Market St,(415) 965-7944,https://www.gohealthuc.com
+Golden Gate Urgent Care (Financial Dist),Urgent Care,"Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare",San Francisco,94105,199 Stevenson St,(415) 854-1840,https://www.gohealthuc.com
+Zuckerberg SF General Emergency & Trauma,Emergency / Urgent Care,"Medicaid, Medicare, Blue Cross Blue Shield, Sliding Scale",San Francisco,94110,1001 Potrero Ave,(415) 206-8000,https://zuckerbergsanfranciscogeneral.org
+UCSF Benioff Children's Hospital,Pediatrics,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, Medicare",San Francisco,94158,1825 4th St,(415) 476-1000,https://www.ucsfhealth.org
+One Medical (Financial District),Primary Care,"Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare",San Francisco,94104,220 Montgomery St,(415) 523-0863,https://www.onemedical.com
+One Medical (Mission District),Primary Care,"Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare",San Francisco,94110,3490 20th St,(415) 523-0863,https://www.onemedical.com
+Saint Francis Memorial Hospital ER,Emergency / Urgent Care,"Blue Cross Blue Shield, Aetna, Cigna, Medicare, Medicaid",San Francisco,94109,900 Hyde St,(415) 353-6000,https://www.dignityhealth.org
+Mission Neighborhood Health Center,Primary Care,"Medicaid, Medicare, Sliding Scale, Uninsured",San Francisco,94110,240 Shotwell St,(415) 552-3870,https://www.mnhc.org
+UCSF Ophthalmology & Eye Center,Ophthalmology,"Medicaid, Blue Cross Blue Shield, Aetna, Cigna, Medicare",San Francisco,94158,490 Illinois St,(415) 353-2020,https://www.ucsfhealth.org
+Pacific Family Practice,Primary Care,"Blue Cross Blue Shield, Aetna, Cigna, Medicare",San Francisco,94111,1 Battery St,(415) 433-5600,https://www.pacificfamilypractice.com
+Walgreens Pharmacy (Powell St),Pharmacy,"All Insurances, Medicaid, Medicare, Blue Cross Blue Shield, Aetna, Cigna, Kaiser",San Francisco,94102,135 Powell St,(415) 391-7222,https://www.walgreens.com
+CVS Pharmacy (Mission St),Pharmacy,"All Insurances, Medicaid, Medicare, Blue Cross Blue Shield, Aetna, Cigna, Kaiser",San Francisco,94105,601 Mission St,(415) 442-0120,https://www.cvs.com
+Walgreens Pharmacy (Castro),Pharmacy,"All Insurances, Medicaid, Medicare, Blue Cross Blue Shield, Aetna, Cigna, Kaiser",San Francisco,94114,498 Castro St,(415) 861-3136,https://www.walgreens.com
+UCSF Outpatient Pharmacy,Pharmacy,"All Insurances, Medicaid, Medicare, Blue Cross Blue Shield, Aetna, Cigna",San Francisco,94143,505 Parnassus Ave,(415) 353-1544,https://www.ucsfhealth.org
+CVS Pharmacy (Geary Blvd),Pharmacy,"All Insurances, Medicaid, Medicare, Blue Cross Blue Shield, Aetna, Cigna",San Francisco,94121,377 32nd Ave,(415) 666-3114,https://www.cvs.com
