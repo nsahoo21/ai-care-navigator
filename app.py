@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import os
+import time
+import re
 import datetime
 from PIL import Image
 import io
@@ -8,14 +10,88 @@ import streamlit.components.v1 as components
 
 # Page Config
 st.set_page_config(
-    page_title="Hello Provider v10 - AI Patient Care & Triage",
+    page_title="Hello Provider v11 - AI Patient Care & Triage",
     page_icon="🩺",
     layout="wide"
 )
 
-# Title and Header
-st.title("🩺 Hello Provider")
-st.caption("Your Empathetic San Francisco Healthcare Guide • Speech & Multi-Photo Comparison • Interactive Triage • In-Network Care Matching")
+# Title and Header with Theme Switcher
+col_header, col_theme = st.columns([3, 1])
+
+with col_header:
+    st.title("🩺 Hello Provider")
+    st.caption("Your Empathetic San Francisco Healthcare Guide • Speech & Multi-Photo Comparison • Interactive Triage • Care Matching")
+
+with col_theme:
+    selected_theme = st.radio("🎨 Theme", ["Light ☀️", "Dark 🌙"], index=0, horizontal=True)
+
+if selected_theme == "Dark 🌙":
+    st.markdown("""
+    <style>
+    .stApp {
+        background-color: #0f172a !important;
+        color: #f8fafc !important;
+    }
+    [data-testid="stSidebar"] {
+        background-color: #1e293b !important;
+        color: #f8fafc !important;
+    }
+    [data-testid="stHeader"] {
+        background-color: #0f172a !important;
+    }
+    [data-testid="stChatMessage"] {
+        background-color: #1e293b !important;
+        border: 1px solid #334155 !important;
+        color: #f8fafc !important;
+    }
+    .stMarkdown, p, h1, h2, h3, h4, h5, h6, label, span {
+        color: #f8fafc !important;
+    }
+    input, textarea, select {
+        background-color: #334155 !important;
+        color: #ffffff !important;
+        border-color: #475569 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+    <style>
+    .stApp {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+    }
+    [data-testid="stSidebar"] {
+        background-color: #f8fafc !important;
+        color: #0f172a !important;
+    }
+    [data-testid="stHeader"] {
+        background-color: #ffffff !important;
+    }
+    [data-testid="stChatMessage"] {
+        background-color: #f1f5f9 !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
+    }
+    .stMarkdown, p, h1, h2, h3, h4, h5, h6, label, span {
+        color: #0f172a !important;
+    }
+    input, textarea, select {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        border-color: #cbd5e1 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# Typing Animation Streaming Helper
+def stream_text(text: str, delay: float = 0.012):
+    tokens = re.split(r'(\s+)', text)
+    for token in tokens:
+        yield token
+        if token.strip():
+            time.sleep(delay)
+
 
 # Load San Francisco Provider Database
 @st.cache_data
@@ -676,7 +752,7 @@ if user_input or active_images:
             if is_agree:
                 st.session_state.consensus_reached = True
                 confirm_msg = "Wonderful! I'm glad we've reached a consensus on your symptoms. Now that we agree on the focus area, here are your matched San Francisco healthcare providers and nearby pharmacies!"
-                st.markdown(confirm_msg)
+                st.write_stream(stream_text(confirm_msg))
                 st.session_state.messages.append({"role": "assistant", "content": confirm_msg})
                 
                 display_provider_results(
@@ -691,7 +767,7 @@ if user_input or active_images:
                         "I strongly recommend scheduling a visit with a **General Practitioner / Primary Care Physician (PCP)** or visiting an Urgent Care clinic for a comprehensive in-person evaluation.\n\n"
                         "Here are top-rated San Francisco Primary Care and Urgent Care centers ready to help you:"
                     )
-                    st.markdown(gp_msg)
+                    st.write_stream(stream_text(gp_msg))
                     st.session_state.messages.append({"role": "assistant", "content": gp_msg})
                     st.session_state.consensus_reached = True
                     display_provider_results(
@@ -705,14 +781,14 @@ if user_input or active_images:
                         "Could you tell me a bit more about what feels different or any other symptoms you've noticed? "
                         "I'll re-evaluate everything right away so we can get to the right focus area together."
                     )
-                    st.markdown(reconsider_msg)
+                    st.write_stream(stream_text(reconsider_msg))
                     st.session_state.messages.append({"role": "assistant", "content": reconsider_msg})
             else:
                 followup_msg = (
                     f"Thanks for adding that context. Based on everything you've shared, I still suspect **{st.session_state.current_triage['suspected_condition']}**.\n\n"
                     f"Do you agree with this focus area, or would you like me to reconsider further?"
                 )
-                st.markdown(followup_msg)
+                st.write_stream(stream_text(followup_msg))
                 st.session_state.messages.append({"role": "assistant", "content": followup_msg})
     else:
         # Check Required Fields for new evaluation
@@ -730,7 +806,7 @@ if user_input or active_images:
                     f"2. Or, you can reply directly in this chat with your age, gender, severity, and how long you've had these symptoms!\n\n"
                     f"Once you've filled those out, send a quick reply and I'll immediately evaluate your case!"
                 )
-                st.markdown(friendly_ask)
+                st.write_stream(stream_text(friendly_ask))
                 st.session_state.messages.append({"role": "assistant", "content": friendly_ask})
             else:
                 # Run Evaluation Engine
@@ -741,7 +817,7 @@ if user_input or active_images:
                 
                 if triage["is_emergency"]:
                     response_text = f"🚨 **IMPORTANT EMERGENCY NOTICE**\n\n{triage['analysis']}\n\n**Recommended Action**: {triage['recommendation']}"
-                    st.error(response_text)
+                    st.write_stream(stream_text(response_text))
                     st.session_state.messages.append({"role": "assistant", "content": response_text})
                 else:
                     assoc_symps_list = "\n".join(f"- {s}" for s in triage["associated_symptoms"])
@@ -760,7 +836,7 @@ if user_input or active_images:
                         f"- Reply **'Yes'** or **'I agree'** if you want to proceed to view matched San Francisco doctors and download your Care Summary.\n"
                         f"- Reply **'No'** or tell me what feels different if you want me to **reconsider**!"
                     )
-                    st.markdown(eval_msg)
+                    st.write_stream(stream_text(eval_msg))
                     st.session_state.messages.append({"role": "assistant", "content": eval_msg})
 
 # Download Section
