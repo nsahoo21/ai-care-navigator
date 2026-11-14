@@ -12,7 +12,7 @@ import streamlit.components.v1 as components
 
 # Page Config
 st.set_page_config(
-    page_title="Hello Provider v15 - AI Patient Care & Triage",
+    page_title="Hello Provider v18 - AI Patient Care & Triage",
     page_icon="🩺",
     layout="wide"
 )
@@ -28,18 +28,18 @@ with col_theme:
     selected_theme = st.radio("🎨 Theme", ["Light ☀️", "Dark 🌙"], index=0, horizontal=True)
 
 if selected_theme == "Dark 🌙":
-    st.markdown("""
+    st.markdown('''
     <style>
     .stApp {
         background-color: #0f172a !important;
-        color: #f8fafc !important;
+        color: #ffffff !important;
     }
     .main .block-container {
         padding-bottom: 60px !important;
     }
     [data-testid="stSidebar"] {
         background-color: #1e293b !important;
-        color: #f8fafc !important;
+        color: #ffffff !important;
         border-right: 1px solid #334155 !important;
     }
     [data-testid="stHeader"] {
@@ -48,30 +48,57 @@ if selected_theme == "Dark 🌙":
     [data-testid="stChatMessage"] {
         background-color: #1e293b !important;
         border: 1px solid #334155 !important;
-        color: #f8fafc !important;
+        color: #ffffff !important;
     }
     .stMarkdown, p, h1, h2, h3, h4, h5, h6, label, span, caption, .stCaption, [data-testid="stCaptionContainer"] {
-        color: #f8fafc !important;
+        color: #ffffff !important;
     }
     input, textarea, select, div[data-baseweb="select"] {
         background-color: #1e293b !important;
         color: #ffffff !important;
         border-color: #475569 !important;
     }
+    /* BOTTOM CHAT INPUT & CONTAINER IN DARK MODE */
+    [data-testid="stBottomBlockContainer"],
+    [data-testid="stBottom"],
+    footer,
+    .stChatInput,
+    [data-testid="stChatInput"],
+    [data-testid="stChatInputContainer"] {
+        background-color: #0f172a !important;
+        color: #ffffff !important;
+    }
+    div[data-testid="stChatInput"] {
+        background-color: #1e293b !important;
+        border: 1.5px solid #475569 !important;
+        border-radius: 12px !important;
+    }
     textarea[data-testid="stChatInputTextArea"] {
         background-color: #1e293b !important;
         color: #ffffff !important;
+    }
+    textarea[data-testid="stChatInputTextArea"]::placeholder {
+        color: #94a3b8 !important;
+    }
+    div[data-testid="stChatInput"] button {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        border-radius: 8px !important;
+    }
+    div[data-testid="stChatInput"] button svg {
+        fill: #0f172a !important;
+        color: #0f172a !important;
     }
     /* DARK THEME FILE UPLOADER DROPZONE */
     [data-testid="stFileUploaderDropzone"] {
         background-color: #1e293b !important;
         border: 1.5px dashed #475569 !important;
-        color: #f8fafc !important;
+        color: #ffffff !important;
     }
     [data-testid="stFileUploaderDropzone"] * {
-        color: #f8fafc !important;
+        color: #ffffff !important;
     }
-    /* DARK THEME BUTTONS: DARK BACKGROUND (#1e293b), WHITE TEXT (#ffffff) */
+    /* DARK THEME BUTTONS */
     button, 
     .stButton > button, 
     .stDownloadButton > button, 
@@ -95,7 +122,7 @@ if selected_theme == "Dark 🌙":
         border-color: #94a3b8 !important;
     }
     </style>
-    """, unsafe_allow_html=True)
+    ''', unsafe_allow_html=True)
 
     v_box_bg = "#1e293b"
     v_box_border = "#38bdf8"
@@ -110,7 +137,7 @@ if selected_theme == "Dark 🌙":
     v_btn_send_border = "#16a34a"
 
 else:
-    st.markdown("""
+    st.markdown('''
     <style>
     .stApp {
         background-color: #ffffff !important;
@@ -140,9 +167,36 @@ else:
         color: #000000 !important;
         border-color: #cbd5e1 !important;
     }
+    /* BOTTOM CHAT INPUT & CONTAINER IN LIGHT MODE */
+    [data-testid="stBottomBlockContainer"],
+    [data-testid="stBottom"],
+    footer,
+    .stChatInput,
+    [data-testid="stChatInput"],
+    [data-testid="stChatInputContainer"] {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    div[data-testid="stChatInput"] {
+        background-color: #ffffff !important;
+        border: 1.5px solid #000000 !important;
+        border-radius: 12px !important;
+    }
     textarea[data-testid="stChatInputTextArea"] {
         background-color: #ffffff !important;
         color: #000000 !important;
+    }
+    textarea[data-testid="stChatInputTextArea"]::placeholder {
+        color: #64748b !important;
+    }
+    div[data-testid="stChatInput"] button {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border-radius: 8px !important;
+    }
+    div[data-testid="stChatInput"] button svg {
+        fill: #ffffff !important;
+        color: #ffffff !important;
     }
     /* LIGHT THEME FILE UPLOADER DROPZONE */
     [data-testid="stFileUploaderDropzone"] {
@@ -153,7 +207,7 @@ else:
     [data-testid="stFileUploaderDropzone"] * {
         color: #000000 !important;
     }
-    /* LIGHT THEME BUTTONS: WHITE BACKGROUND (#ffffff), BLACK TEXT (#000000) */
+    /* LIGHT THEME BUTTONS */
     button, 
     .stButton > button, 
     .stDownloadButton > button, 
@@ -177,7 +231,7 @@ else:
         border-color: #000000 !important;
     }
     </style>
-    """, unsafe_allow_html=True)
+    ''', unsafe_allow_html=True)
 
     v_box_bg = "#f0f9ff"
     v_box_border = "#0284c7"
