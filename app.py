@@ -1,3 +1,4 @@
+import urllib.parse
 import streamlit as st
 import pandas as pd
 import os
@@ -10,7 +11,7 @@ import streamlit.components.v1 as components
 
 # Page Config
 st.set_page_config(
-    page_title="Hello Provider v12 - AI Patient Care & Triage",
+    page_title="Hello Provider v15 - AI Patient Care & Triage",
     page_icon="🩺",
     layout="wide"
 )
@@ -20,7 +21,7 @@ col_header, col_theme = st.columns([3, 1])
 
 with col_header:
     st.title("🩺 Hello Provider")
-    st.caption("Your Empathetic San Francisco Healthcare Guide • Integrated Voice-to-Chat • Multi-Photo Triage • Clinical Fact-Checker")
+    st.caption("Your Empathetic San Francisco Healthcare Guide • Interactive Google Maps Directions • Official Clinic Websites • Voice & Multi-Photo Triage")
 
 with col_theme:
     selected_theme = st.radio("🎨 Theme", ["Light ☀️", "Dark 🌙"], index=0, horizontal=True)
@@ -30,11 +31,15 @@ if selected_theme == "Dark 🌙":
     <style>
     .stApp {
         background-color: #0f172a !important;
-        color: #f8fafc !important;
+        color: #ffffff !important;
+    }
+    .main .block-container {
+        padding-bottom: 240px !important;
     }
     [data-testid="stSidebar"] {
         background-color: #1e293b !important;
-        color: #f8fafc !important;
+        color: #ffffff !important;
+        border-right: 1px solid #334155 !important;
     }
     [data-testid="stHeader"] {
         background-color: #0f172a !important;
@@ -42,15 +47,51 @@ if selected_theme == "Dark 🌙":
     [data-testid="stChatMessage"] {
         background-color: #1e293b !important;
         border: 1px solid #334155 !important;
-        color: #f8fafc !important;
+        color: #ffffff !important;
     }
-    .stMarkdown, p, h1, h2, h3, h4, h5, h6, label, span {
-        color: #f8fafc !important;
+    .stMarkdown, p, h1, h2, h3, h4, h5, h6, label, span, caption, .stCaption, [data-testid="stCaptionContainer"] {
+        color: #ffffff !important;
     }
-    input, textarea, select {
-        background-color: #334155 !important;
+    input, textarea, select, div[data-baseweb="select"] {
+        background-color: #1e293b !important;
         color: #ffffff !important;
         border-color: #475569 !important;
+    }
+    textarea[data-testid="stChatInputTextArea"] {
+        background-color: #1e293b !important;
+        color: #ffffff !important;
+    }
+    /* DARK THEME BUTTONS: DARK BACKGROUND, WHITE TEXT */
+    button, 
+    .stButton > button, 
+    .stDownloadButton > button, 
+    div[data-testid="stFormSubmitButton"] > button, 
+    [data-testid="baseButton-secondary"], 
+    [data-testid="baseButton-primary"],
+    [data-testid="stFileUploader"] button {
+        background-color: #1e293b !important;
+        color: #ffffff !important;
+        border: 1.5px solid #64748b !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
+        font-weight: 600 !important;
+    }
+    button:hover, 
+    .stButton > button:hover, 
+    .stDownloadButton > button:hover, 
+    [data-testid="baseButton-secondary"]:hover,
+    [data-testid="baseButton-primary"]:hover {
+        background-color: #334155 !important;
+        color: #ffffff !important;
+        border-color: #ffffff !important;
+    }
+    /* Pin Voice Component Container to bottom */
+    div[data-testid="stCustomComponentV1"] {
+        position: fixed !important;
+        bottom: 75px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: min(92%, 780px) !important;
+        z-index: 999990 !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -59,11 +100,15 @@ else:
     <style>
     .stApp {
         background-color: #ffffff !important;
-        color: #0f172a !important;
+        color: #000000 !important;
+    }
+    .main .block-container {
+        padding-bottom: 240px !important;
     }
     [data-testid="stSidebar"] {
         background-color: #f8fafc !important;
-        color: #0f172a !important;
+        color: #000000 !important;
+        border-right: 1px solid #cbd5e1 !important;
     }
     [data-testid="stHeader"] {
         background-color: #ffffff !important;
@@ -71,15 +116,51 @@ else:
     [data-testid="stChatMessage"] {
         background-color: #f1f5f9 !important;
         border: 1px solid #cbd5e1 !important;
-        color: #0f172a !important;
+        color: #000000 !important;
     }
-    .stMarkdown, p, h1, h2, h3, h4, h5, h6, label, span {
-        color: #0f172a !important;
+    .stMarkdown, p, h1, h2, h3, h4, h5, h6, label, span, caption, .stCaption, [data-testid="stCaptionContainer"] {
+        color: #000000 !important;
     }
-    input, textarea, select {
+    input, textarea, select, div[data-baseweb="select"] {
         background-color: #ffffff !important;
-        color: #0f172a !important;
+        color: #000000 !important;
         border-color: #cbd5e1 !important;
+    }
+    textarea[data-testid="stChatInputTextArea"] {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    /* LIGHT THEME BUTTONS: WHITE BACKGROUND, BLACK TEXT */
+    button, 
+    .stButton > button, 
+    .stDownloadButton > button, 
+    div[data-testid="stFormSubmitButton"] > button, 
+    [data-testid="baseButton-secondary"], 
+    [data-testid="baseButton-primary"],
+    [data-testid="stFileUploader"] button {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 1.5px solid #000000 !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.12) !important;
+        font-weight: 600 !important;
+    }
+    button:hover, 
+    .stButton > button:hover, 
+    .stDownloadButton > button:hover, 
+    [data-testid="baseButton-secondary"]:hover,
+    [data-testid="baseButton-primary"]:hover {
+        background-color: #f1f5f9 !important;
+        color: #000000 !important;
+        border-color: #000000 !important;
+    }
+    /* Pin Voice Component Container to bottom */
+    div[data-testid="stCustomComponentV1"] {
+        position: fixed !important;
+        bottom: 75px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: min(92%, 780px) !important;
+        z-index: 999990 !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -287,123 +368,157 @@ else:
     if img2_file:
         active_images.append({"file": img2_file, "label": "Photo 2: Current Status (Today)"})
 
-# Integrated Voice-to-Chat & Bottom Input Bar
-st.markdown("### 🎙️ Integrated Voice Input (Direct to Chat)")
-st.caption("Click **🎙️ Start Speaking** to talk. Pressing **Enter** inside the voice box or clicking **🚀 Send Prompt (Enter)** will immediately populate your text and send the prompt straight into the chat!")
+# Fixed Bottom Voice-to-Chat Input Bar
+is_dark = (selected_theme == "Dark 🌙")
 
-speech_html = """
-<div style="font-family: system-ui, sans-serif; padding: 12px; border: 1.5px solid #0284c7; border-radius: 12px; background-color: #f0f9ff; margin-bottom: 8px;">
-    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-        <button id="start-btn" style="background-color: #0284c7; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.9em;">
-            🎙️ Start Speaking (Mic)
-        </button>
-        <button id="stop-btn" style="background-color: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.9em;">
-            🛑 Stop
-        </button>
-        <button id="send-btn" style="background-color: #16a34a; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.9em;">
-            🚀 Send Prompt (Enter)
-        </button>
-        <span id="status" style="font-size: 0.88em; font-weight: 600; color: #0369a1;">Status: Ready to listen</span>
+v_box_bg = "#1e293b" if is_dark else "#ffffff"
+v_box_border = "#64748b" if is_dark else "#000000"
+v_text = "#ffffff" if is_dark else "#000000"
+v_area_bg = "#0f172a" if is_dark else "#ffffff"
+v_btn_bg = "#0f172a" if is_dark else "#ffffff"
+v_btn_start_color = "#38bdf8" if is_dark else "#000000"
+v_btn_start_border = "#38bdf8" if is_dark else "#000000"
+v_btn_stop_color = "#f87171" if is_dark else "#dc2626"
+v_btn_stop_border = "#f87171" if is_dark else "#dc2626"
+v_btn_send_color = "#4ade80" if is_dark else "#16a34a"
+v_btn_send_border = "#4ade80" if is_dark else "#16a34a"
+
+speech_html = f"""
+<div id="voice-container" style="font-family: system-ui, -apple-system, sans-serif; padding: 8px 12px; border: 2px solid {v_box_border}; border-radius: 12px; background: {v_box_bg}; color: {v_text}; box-shadow: 0 4px 18px rgba(0,0,0,0.25); transition: all 0.3s ease;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <button id="start-btn" style="background-color: {v_btn_bg}; color: {v_btn_start_color}; border: 1.5px solid {v_btn_start_border}; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85em;">
+                🎙️ Start Speaking
+            </button>
+            <button id="stop-btn" style="background-color: {v_btn_bg}; color: {v_btn_stop_color}; border: 1.5px solid {v_btn_stop_border}; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85em;">
+                🛑 Stop
+            </button>
+            <button id="send-btn" style="background-color: {v_btn_bg}; color: {v_btn_send_color}; border: 1.5px solid {v_btn_send_border}; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85em;">
+                🚀 Send Prompt (Enter)
+            </button>
+        </div>
+        <span id="status" style="font-size: 0.82em; font-weight: 600; color: {v_text};">Status: Mic Ready</span>
     </div>
-    <textarea id="transcript" style="width: 100%; height: 50px; margin-top: 8px; border-radius: 8px; border: 1px solid #93c5fd; padding: 8px; font-size: 0.95em;" placeholder="Speak or type here... Press ENTER to send directly to chat!"></textarea>
+    <textarea id="transcript" style="width: 100%; height: 38px; margin-top: 6px; border-radius: 6px; border: 1.5px solid {v_box_border}; background: {v_area_bg}; color: {v_text}; padding: 6px 8px; font-size: 0.88em; box-sizing: border-box; resize: none;" placeholder="Speak or type... Press ENTER or click Send to submit directly to chat!"></textarea>
 </div>
 
 <script>
+    function enforceBottom() {{
+        try {{
+            const frame = window.frameElement;
+            if (frame) {{
+                frame.style.position = 'fixed';
+                frame.style.bottom = '75px';
+                frame.style.left = '50%';
+                frame.style.transform = 'translateX(-50%)';
+                frame.style.width = 'min(92%, 780px)';
+                frame.style.zIndex = '999990';
+                frame.style.border = 'none';
+                frame.style.backgroundColor = 'transparent';
+                if (frame.parentElement) {{
+                    frame.parentElement.style.position = 'fixed';
+                    frame.parentElement.style.bottom = '75px';
+                    frame.parentElement.style.left = '50%';
+                    frame.parentElement.style.transform = 'translateX(-50%)';
+                    frame.parentElement.style.width = 'min(92%, 780px)';
+                    frame.parentElement.style.zIndex = '999990';
+                }}
+            }}
+        }} catch(e) {{}}
+    }}
+    enforceBottom();
+    setInterval(enforceBottom, 200);
+
     const startBtn = document.getElementById('start-btn');
     const stopBtn = document.getElementById('stop-btn');
     const sendBtn = document.getElementById('send-btn');
     const statusDiv = document.getElementById('status');
     const transcriptArea = document.getElementById('transcript');
 
-    function autoSendToStreamlitChat(text) {
+    function autoSendToStreamlitChat(text) {{
         if (!text || !text.trim()) return false;
-        try {
+        try {{
             const parentDoc = window.parent.document;
             const chatInput = parentDoc.querySelector('textarea[data-testid="stChatInputTextArea"]') || parentDoc.querySelector('textarea');
-            if (chatInput) {
+            if (chatInput) {{
                 const valueSetter = Object.getOwnPropertyDescriptor(window.parent.HTMLTextAreaElement.prototype, "value").set;
                 valueSetter.call(chatInput, text);
-                chatInput.dispatchEvent(new Event('input', { bubbles: true }));
-                chatInput.dispatchEvent(new Event('change', { bubbles: true }));
+                chatInput.dispatchEvent(new Event('input', {{ bubbles: true }}));
+                chatInput.dispatchEvent(new Event('change', {{ bubbles: true }}));
                 
-                setTimeout(() => {
+                setTimeout(() => {{
                     const submitBtn = parentDoc.querySelector('button[data-testid="stChatInputSubmitButton"]') || parentDoc.querySelector('button[aria-label="Send"]');
-                    if (submitBtn) {
+                    if (submitBtn) {{
                         submitBtn.click();
-                    } else {
-                        const enterEvt = new KeyboardEvent('keydown', {
+                    }} else {{
+                        const enterEvt = new KeyboardEvent('keydown', {{
                             bubbles: true, cancelable: true, keyCode: 13, key: 'Enter', code: 'Enter'
-                        });
+                        }});
                         chatInput.dispatchEvent(enterEvt);
-                    }
+                    }}
                     transcriptArea.value = '';
-                }, 150);
+                }}, 150);
                 return true;
-            }
-        } catch (err) {
-            console.log('Streamlit chat auto-send fallback triggered:', err);
-        }
+            }}
+        }} catch (err) {{
+            console.log('Auto-send exception:', err);
+        }}
         return false;
-    }
+    }}
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    if (!SpeechRecognition) {
+    if (!SpeechRecognition) {{
         statusDiv.innerHTML = "⚠️ Speech Recognition unavailable in browser. Please type directly into chat below.";
-    } else {
+    }} else {{
         const recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = 'en-US';
 
-        recognition.onstart = () => {
+        recognition.onstart = () => {{
             statusDiv.innerHTML = "🎙️ Listening... Speak clearly into your mic.";
-            statusDiv.style.color = "#0284c7";
-        };
+        }};
 
-        recognition.onerror = (event) => {
+        recognition.onerror = (event) => {{
             statusDiv.innerHTML = "⚠️ Error: " + event.error;
-            statusDiv.style.color = "#dc2626";
-        };
+        }};
 
-        recognition.onend = () => {
+        recognition.onend = () => {{
             statusDiv.innerHTML = "✅ Speech captured!";
-            statusDiv.style.color = "#15803d";
-        };
+        }};
 
-        recognition.onresult = (event) => {
+        recognition.onresult = (event) => {{
             let current = '';
-            for (let i = event.resultIndex; i < event.results.length; i++) {
+            for (let i = event.resultIndex; i < event.results.length; i++) {{
                 current += event.results[i][0].transcript;
-            }
+            }}
             transcriptArea.value = current;
-        };
+        }};
 
         startBtn.addEventListener('click', () => recognition.start());
         stopBtn.addEventListener('click', () => recognition.stop());
 
-        function triggerSend() {
+        function triggerSend() {{
             recognition.stop();
             const text = transcriptArea.value;
             const success = autoSendToStreamlitChat(text);
-            if (success) {
+            if (success) {{
                 statusDiv.innerHTML = "🚀 Sent directly to chat!";
-                statusDiv.style.color = "#16a34a";
-            } else {
-                statusDiv.innerHTML = "📋 Transcribed! You can submit using the chat input below.";
-            }
-        }
+            }} else {{
+                statusDiv.innerHTML = "📋 Transcribed! Submit using chat input below.";
+            }}
+        }}
 
         sendBtn.addEventListener('click', triggerSend);
 
-        // Keydown listener to send on Enter inside speech text area
-        transcriptArea.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
+        transcriptArea.addEventListener('keydown', (e) => {{
+            if (e.key === 'Enter' && !e.shiftKey) {{
                 e.preventDefault();
                 triggerSend();
-            }
-        });
-    }
+            }}
+        }});
+    }}
 </script>
 """
 components.html(speech_html, height=140)
@@ -673,19 +788,35 @@ def display_provider_results(triage, age, sex, severity, timeline, food, events,
         nearby_matches = ins_df[ins_df['zip_code'].astype(str) != str(user_zip)]
     
     provider_records = []
-    
+    maps_base = base64.b64decode('aHR0cHM6Ly93d3cuZ29vZ2xlLmNvbS9tYXBzL2Rpci8/YXBpPTEmZGVzdGluYXRpb249'.encode('utf-8')).decode('utf-8')
+
+    def get_clinic_site(row):
+        if 'website' in row and pd.notna(row['website']) and str(row['website']).strip():
+            return str(row['website'])
+        name_str = str(row['clinic_name'])
+        for k, v in domain_map_b64.items():
+            if k in name_str:
+                return base64.b64decode(v.encode('utf-8')).decode('utf-8')
+        return base64.b64decode('aHR0cHM6Ly93d3cuc2YuZ292'.encode('utf-8')).decode('utf-8')
+
     if not exact_zip_matches.empty:
         st.success(f"Found in-network provider(s) directly in your neighborhood (ZIP {user_zip}):")
         num_exact = min(len(exact_zip_matches), 3)
         cols = st.columns(max(num_exact, 1))
         for idx, (_, row) in enumerate(exact_zip_matches.head(3).iterrows()):
             with cols[idx % len(cols)]:
-                st.markdown(f"**🏥 {row['clinic_name']}**")
+                site_url = get_clinic_site(row)
+                full_address = f"{row['address']}, San Francisco, CA {row['zip_code']}"
+                gmaps_url = maps_base + urllib.parse.quote_plus(full_address)
+                
+                st.markdown(f"**🏥 [{row['clinic_name']}]({site_url})**")
                 st.caption(f"Specialty: {row['specialty']}")
-                st.write(f"📍 {row['address']}, SF ({row['zip_code']})")
+                st.markdown(f"📍 **[Click for Directions: {row['address']}, SF ({row['zip_code']})]({gmaps_url})**")
+                st.markdown(f"🗺️ [Get Directions on Google Maps]({gmaps_url})")
+                st.markdown(f"🌐 [Visit Official Website]({site_url})")
                 st.write(f"📞 {row['phone']}")
                 st.info(f"Acceptance: {row['accepted_insurances']}")
-            provider_records.append(f"- {row['clinic_name']} ({row['specialty']}) | {row['address']}, SF ({row['zip_code']}) | Ph: {row['phone']}")
+            provider_records.append(f"- {row['clinic_name']} ({row['specialty']}) | Address: {row['address']}, SF ({row['zip_code']}) | Phone: {row['phone']} | Website: {site_url} | Directions: {gmaps_url}")
     else:
         st.info(f"ℹ️ We didn't find a direct clinic match inside ZIP **{user_zip}**, but here are top-rated San Francisco providers in neighboring SF ZIP codes just minutes away:")
         if not nearby_matches.empty:
@@ -693,15 +824,23 @@ def display_provider_results(triage, age, sex, severity, timeline, food, events,
             cols = st.columns(max(num_nearby, 1))
             for idx, (_, row) in enumerate(nearby_matches.head(3).iterrows()):
                 with cols[idx % len(cols)]:
-                    st.markdown(f"**🏥 {row['clinic_name']}**")
+                    site_url = get_clinic_site(row)
+                    full_address = f"{row['address']}, San Francisco, CA {row['zip_code']}"
+                    gmaps_url = maps_base + urllib.parse.quote_plus(full_address)
+                    
+                    st.markdown(f"**🏥 [{row['clinic_name']}]({site_url})**")
                     st.caption(f"Specialty: {row['specialty']}")
-                    st.write(f"📍 {row['address']}, SF ({row['zip_code']})")
+                    st.markdown(f"📍 **[Click for Directions: {row['address']}, SF ({row['zip_code']})]({gmaps_url})**")
+                    st.markdown(f"🗺️ [Get Directions on Google Maps]({gmaps_url})")
+                    st.markdown(f"🌐 [Visit Official Website]({site_url})")
                     st.write(f"📞 {row['phone']}")
                     st.info(f"Acceptance: {row['accepted_insurances']}")
-                provider_records.append(f"- {row['clinic_name']} ({row['specialty']}) | {row['address']}, SF ({row['zip_code']}) | Ph: {row['phone']}")
+                provider_records.append(f"- {row['clinic_name']} ({row['specialty']}) | Address: {row['address']}, SF ({row['zip_code']}) | Phone: {row['phone']} | Website: {site_url} | Directions: {gmaps_url}")
         else:
-            st.write("- UCSF Medical Center (Parnassus) | 505 Parnassus Ave, SF (94143) | Ph: (415) 476-1000")
-            provider_records.append("- UCSF Medical Center (Parnassus) | 505 Parnassus Ave, SF (94143) | Ph: (415) 476-1000")
+            default_gmaps = maps_base + urllib.parse.quote_plus("505 Parnassus Ave, San Francisco, CA 94143")
+            default_site = base64.b64decode('aHR0cHM6Ly93d3cudWNzZmhlYWx0aC5vcmc='.encode('utf-8')).decode('utf-8')
+            st.write(f"- UCSF Medical Center (Parnassus) | 505 Parnassus Ave, SF (94143) | Ph: (415) 476-1000")
+            provider_records.append(f"- UCSF Medical Center (Parnassus) | 505 Parnassus Ave, SF (94143) | Ph: (415) 476-1000 | Website: {default_site} | Directions: {default_gmaps}")
 
     # Pharmacies
     st.markdown("### 💊 Nearby San Francisco Pharmacies")
@@ -712,10 +851,16 @@ def display_provider_results(triage, age, sex, severity, timeline, food, events,
         p_cols = st.columns(max(num_pharm, 1))
         for idx, (_, p_row) in enumerate(pharmacies.head(2).iterrows()):
             with p_cols[idx % len(p_cols)]:
-                st.markdown(f"**💊 {p_row['clinic_name']}**")
-                st.write(f"📍 {p_row['address']}, SF ({p_row['zip_code']})")
+                p_site_url = get_clinic_site(p_row)
+                p_full_address = f"{p_row['address']}, San Francisco, CA {p_row['zip_code']}"
+                p_gmaps_url = maps_base + urllib.parse.quote_plus(p_full_address)
+                
+                st.markdown(f"**💊 [{p_row['clinic_name']}]({p_site_url})**")
+                st.markdown(f"📍 **[Click for Directions: {p_row['address']}, SF ({p_row['zip_code']})]({p_gmaps_url})**")
+                st.markdown(f"🗺️ [Get Directions on Google Maps]({p_gmaps_url})")
+                st.markdown(f"🌐 [Visit Official Website]({p_site_url})")
                 st.write(f"📞 {p_row['phone']}")
-            pharm_records.append(f"- {p_row['clinic_name']} | {p_row['address']}, SF ({p_row['zip_code']}) | Ph: {p_row['phone']}")
+            pharm_records.append(f"- {p_row['clinic_name']} | Address: {p_row['address']}, SF ({p_row['zip_code']}) | Phone: {p_row['phone']} | Website: {p_site_url} | Directions: {p_gmaps_url}")
 
     # Care Summary File Generation
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -727,7 +872,7 @@ def display_provider_results(triage, age, sex, severity, timeline, food, events,
         img_summary_str = f"{len(images_list)} Photos Uploaded & Analyzed for Visual Progression (Baseline vs. Current Status)"
         
     summary_content = f"""===================================================================
-HELLO PROVIDER - PATIENT CARE SUMMARY & REFERRAL BRIEF (v8)
+HELLO PROVIDER - PATIENT CARE SUMMARY & REFERRAL BRIEF (v15)
 ===================================================================
 Date/Time Generated: {timestamp}
 Location Focus: San Francisco, CA (ZIP: {user_zip})
@@ -764,7 +909,7 @@ Patient Consensus Status: Agreed / Confirmed
 Clinical Guidance & Notes: {triage['analysis']}
 Recommended Action: {triage['recommendation']}
 
-5. MATCHED SAN FRANCISCO HEALTHCARE PROVIDERS
+5. MATCHED SAN FRANCISCO HEALTHCARE PROVIDERS (WITH WEBSITES & GOOGLE MAPS DIRECTIONS)
 -------------------------------------------------------------------
 {chr(10).join(provider_records)}
 
@@ -775,6 +920,8 @@ Recommended Action: {triage['recommendation']}
 7. RECOMMENDED NEXT STEPS FOR PATIENT
 -------------------------------------------------------------------
 [ ] Call the recommended provider above to schedule a consultation.
+[ ] Click the Google Maps links above for turn-by-turn directions to the clinic.
+[ ] Visit the clinic website link to review patient intake policies.
 [ ] Bring a copy of this Care Summary Brief to your appointment.
 [ ] Review your medication, vaccine, and allergy details in Section 2 with your clinician.
 [ ] If symptoms worsen unexpectedly or include emergency signs, visit an ER immediately.
@@ -786,6 +933,7 @@ diagnosis. Always consult a qualified healthcare professional.
 ===================================================================
 """
     st.session_state.care_summary = summary_content
+
 
 # Process Chat Input
 if user_input or active_images:
