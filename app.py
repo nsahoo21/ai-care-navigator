@@ -1,4 +1,5 @@
 import urllib.parse
+import base64
 import streamlit as st
 import pandas as pd
 import os
@@ -31,14 +32,14 @@ if selected_theme == "Dark 🌙":
     <style>
     .stApp {
         background-color: #0f172a !important;
-        color: #ffffff !important;
+        color: #f8fafc !important;
     }
     .main .block-container {
-        padding-bottom: 240px !important;
+        padding-bottom: 60px !important;
     }
     [data-testid="stSidebar"] {
         background-color: #1e293b !important;
-        color: #ffffff !important;
+        color: #f8fafc !important;
         border-right: 1px solid #334155 !important;
     }
     [data-testid="stHeader"] {
@@ -47,10 +48,10 @@ if selected_theme == "Dark 🌙":
     [data-testid="stChatMessage"] {
         background-color: #1e293b !important;
         border: 1px solid #334155 !important;
-        color: #ffffff !important;
+        color: #f8fafc !important;
     }
     .stMarkdown, p, h1, h2, h3, h4, h5, h6, label, span, caption, .stCaption, [data-testid="stCaptionContainer"] {
-        color: #ffffff !important;
+        color: #f8fafc !important;
     }
     input, textarea, select, div[data-baseweb="select"] {
         background-color: #1e293b !important;
@@ -61,7 +62,16 @@ if selected_theme == "Dark 🌙":
         background-color: #1e293b !important;
         color: #ffffff !important;
     }
-    /* DARK THEME BUTTONS: DARK BACKGROUND, WHITE TEXT */
+    /* DARK THEME FILE UPLOADER DROPZONE */
+    [data-testid="stFileUploaderDropzone"] {
+        background-color: #1e293b !important;
+        border: 1.5px dashed #475569 !important;
+        color: #f8fafc !important;
+    }
+    [data-testid="stFileUploaderDropzone"] * {
+        color: #f8fafc !important;
+    }
+    /* DARK THEME BUTTONS: DARK BACKGROUND (#1e293b), WHITE TEXT (#ffffff) */
     button, 
     .stButton > button, 
     .stDownloadButton > button, 
@@ -71,7 +81,7 @@ if selected_theme == "Dark 🌙":
     [data-testid="stFileUploader"] button {
         background-color: #1e293b !important;
         color: #ffffff !important;
-        border: 1.5px solid #64748b !important;
+        border: 1.5px solid #475569 !important;
         box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
         font-weight: 600 !important;
     }
@@ -82,19 +92,23 @@ if selected_theme == "Dark 🌙":
     [data-testid="baseButton-primary"]:hover {
         background-color: #334155 !important;
         color: #ffffff !important;
-        border-color: #ffffff !important;
-    }
-    /* Pin Voice Component Container to bottom */
-    div[data-testid="stCustomComponentV1"] {
-        position: fixed !important;
-        bottom: 75px !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        width: min(92%, 780px) !important;
-        z-index: 999990 !important;
+        border-color: #94a3b8 !important;
     }
     </style>
     """, unsafe_allow_html=True)
+
+    v_box_bg = "#1e293b"
+    v_box_border = "#38bdf8"
+    v_text = "#f8fafc"
+    v_area_bg = "#0f172a"
+    v_btn_bg = "#1e293b"
+    v_btn_start_color = "#38bdf8"
+    v_btn_start_border = "#0284c7"
+    v_btn_stop_color = "#f87171"
+    v_btn_stop_border = "#dc2626"
+    v_btn_send_color = "#4ade80"
+    v_btn_send_border = "#16a34a"
+
 else:
     st.markdown("""
     <style>
@@ -103,7 +117,7 @@ else:
         color: #000000 !important;
     }
     .main .block-container {
-        padding-bottom: 240px !important;
+        padding-bottom: 60px !important;
     }
     [data-testid="stSidebar"] {
         background-color: #f8fafc !important;
@@ -130,7 +144,16 @@ else:
         background-color: #ffffff !important;
         color: #000000 !important;
     }
-    /* LIGHT THEME BUTTONS: WHITE BACKGROUND, BLACK TEXT */
+    /* LIGHT THEME FILE UPLOADER DROPZONE */
+    [data-testid="stFileUploaderDropzone"] {
+        background-color: #f8fafc !important;
+        border: 1.5px dashed #cbd5e1 !important;
+        color: #000000 !important;
+    }
+    [data-testid="stFileUploaderDropzone"] * {
+        color: #000000 !important;
+    }
+    /* LIGHT THEME BUTTONS: WHITE BACKGROUND (#ffffff), BLACK TEXT (#000000) */
     button, 
     .stButton > button, 
     .stDownloadButton > button, 
@@ -153,19 +176,21 @@ else:
         color: #000000 !important;
         border-color: #000000 !important;
     }
-    /* Pin Voice Component Container to bottom */
-    div[data-testid="stCustomComponentV1"] {
-        position: fixed !important;
-        bottom: 75px !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        width: min(92%, 780px) !important;
-        z-index: 999990 !important;
-    }
     </style>
     """, unsafe_allow_html=True)
 
-# Typing Animation Streaming Helper
+    v_box_bg = "#f0f9ff"
+    v_box_border = "#0284c7"
+    v_text = "#0f172a"
+    v_area_bg = "#ffffff"
+    v_btn_bg = "#ffffff"
+    v_btn_start_color = "#0284c7"
+    v_btn_start_border = "#0284c7"
+    v_btn_stop_color = "#dc2626"
+    v_btn_stop_border = "#dc2626"
+    v_btn_send_color = "#16a34a"
+    v_btn_send_border = "#16a34a"
+
 def stream_text(text: str, delay: float = 0.012):
     tokens = re.split(r'(\s+)', text)
     for token in tokens:
@@ -368,67 +393,30 @@ else:
     if img2_file:
         active_images.append({"file": img2_file, "label": "Photo 2: Current Status (Today)"})
 
-# Fixed Bottom Voice-to-Chat Input Bar
-is_dark = (selected_theme == "Dark 🌙")
-
-v_box_bg = "#1e293b" if is_dark else "#ffffff"
-v_box_border = "#64748b" if is_dark else "#000000"
-v_text = "#ffffff" if is_dark else "#000000"
-v_area_bg = "#0f172a" if is_dark else "#ffffff"
-v_btn_bg = "#0f172a" if is_dark else "#ffffff"
-v_btn_start_color = "#38bdf8" if is_dark else "#000000"
-v_btn_start_border = "#38bdf8" if is_dark else "#000000"
-v_btn_stop_color = "#f87171" if is_dark else "#dc2626"
-v_btn_stop_border = "#f87171" if is_dark else "#dc2626"
-v_btn_send_color = "#4ade80" if is_dark else "#16a34a"
-v_btn_send_border = "#4ade80" if is_dark else "#16a34a"
+# Integrated Voice-to-Chat Input Section
+st.markdown("### 🎙️ Speech-to-Text Voice Input")
+st.caption("Click **🎙️ Start Speaking** to talk into your mic. Click **🚀 Send Prompt (Enter)** or press ENTER inside the speech box to send your spoken message straight into the chat!")
 
 speech_html = f"""
-<div id="voice-container" style="font-family: system-ui, -apple-system, sans-serif; padding: 8px 12px; border: 2px solid {v_box_border}; border-radius: 12px; background: {v_box_bg}; color: {v_text}; box-shadow: 0 4px 18px rgba(0,0,0,0.25); transition: all 0.3s ease;">
-    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
-        <div style="display: flex; align-items: center; gap: 6px;">
-            <button id="start-btn" style="background-color: {v_btn_bg}; color: {v_btn_start_color}; border: 1.5px solid {v_btn_start_border}; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85em;">
+<div id="voice-container" style="font-family: system-ui, -apple-system, sans-serif; padding: 10px 14px; border: 2px solid {v_box_border}; border-radius: 12px; background: {v_box_bg}; color: {v_text}; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 6px; margin-bottom: 12px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <button id="start-btn" style="background-color: {v_btn_bg}; color: {v_btn_start_color}; border: 1.5px solid {v_btn_start_border}; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.88em;">
                 🎙️ Start Speaking
             </button>
-            <button id="stop-btn" style="background-color: {v_btn_bg}; color: {v_btn_stop_color}; border: 1.5px solid {v_btn_stop_border}; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85em;">
+            <button id="stop-btn" style="background-color: {v_btn_bg}; color: {v_btn_stop_color}; border: 1.5px solid {v_btn_stop_border}; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.88em;">
                 🛑 Stop
             </button>
-            <button id="send-btn" style="background-color: {v_btn_bg}; color: {v_btn_send_color}; border: 1.5px solid {v_btn_send_border}; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85em;">
+            <button id="send-btn" style="background-color: {v_btn_bg}; color: {v_btn_send_color}; border: 1.5px solid {v_btn_send_border}; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.88em;">
                 🚀 Send Prompt (Enter)
             </button>
         </div>
-        <span id="status" style="font-size: 0.82em; font-weight: 600; color: {v_text};">Status: Mic Ready</span>
+        <span id="status" style="font-size: 0.85em; font-weight: 600; color: {v_text};">Status: Mic Ready</span>
     </div>
-    <textarea id="transcript" style="width: 100%; height: 38px; margin-top: 6px; border-radius: 6px; border: 1.5px solid {v_box_border}; background: {v_area_bg}; color: {v_text}; padding: 6px 8px; font-size: 0.88em; box-sizing: border-box; resize: none;" placeholder="Speak or type... Press ENTER or click Send to submit directly to chat!"></textarea>
+    <textarea id="transcript" style="width: 100%; height: 42px; margin-top: 8px; border-radius: 6px; border: 1.5px solid {v_box_border}; background: {v_area_bg}; color: {v_text}; padding: 8px; font-size: 0.9em; box-sizing: border-box; resize: none;" placeholder="Speak or type... Press ENTER or click Send to submit directly to chat!"></textarea>
 </div>
 
 <script>
-    function enforceBottom() {{
-        try {{
-            const frame = window.frameElement;
-            if (frame) {{
-                frame.style.position = 'fixed';
-                frame.style.bottom = '75px';
-                frame.style.left = '50%';
-                frame.style.transform = 'translateX(-50%)';
-                frame.style.width = 'min(92%, 780px)';
-                frame.style.zIndex = '999990';
-                frame.style.border = 'none';
-                frame.style.backgroundColor = 'transparent';
-                if (frame.parentElement) {{
-                    frame.parentElement.style.position = 'fixed';
-                    frame.parentElement.style.bottom = '75px';
-                    frame.parentElement.style.left = '50%';
-                    frame.parentElement.style.transform = 'translateX(-50%)';
-                    frame.parentElement.style.width = 'min(92%, 780px)';
-                    frame.parentElement.style.zIndex = '999990';
-                }}
-            }}
-        }} catch(e) {{}}
-    }}
-    enforceBottom();
-    setInterval(enforceBottom, 200);
-
     const startBtn = document.getElementById('start-btn');
     const stopBtn = document.getElementById('stop-btn');
     const sendBtn = document.getElementById('send-btn');
@@ -478,14 +466,17 @@ speech_html = f"""
 
         recognition.onstart = () => {{
             statusDiv.innerHTML = "🎙️ Listening... Speak clearly into your mic.";
+            statusDiv.style.color = "{v_btn_start_color}";
         }};
 
         recognition.onerror = (event) => {{
             statusDiv.innerHTML = "⚠️ Error: " + event.error;
+            statusDiv.style.color = "{v_btn_stop_color}";
         }};
 
         recognition.onend = () => {{
             statusDiv.innerHTML = "✅ Speech captured!";
+            statusDiv.style.color = "{v_btn_send_color}";
         }};
 
         recognition.onresult = (event) => {{
@@ -505,6 +496,7 @@ speech_html = f"""
             const success = autoSendToStreamlitChat(text);
             if (success) {{
                 statusDiv.innerHTML = "🚀 Sent directly to chat!";
+                statusDiv.style.color = "{v_btn_send_color}";
             }} else {{
                 statusDiv.innerHTML = "📋 Transcribed! Submit using chat input below.";
             }}
@@ -521,7 +513,7 @@ speech_html = f"""
     }}
 </script>
 """
-components.html(speech_html, height=140)
+components.html(speech_html, height=135)
 
 # Chat Input Box
 user_input = st.chat_input("Talk to Hello Provider about your symptoms or medical concerns...")
